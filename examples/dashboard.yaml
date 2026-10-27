@@ -1,0 +1,23 @@
+title: Fűtéstuning
+views:
+  - title: Főoldal
+    path: fooldal
+    icon: mdi:home-thermometer
+    type: panel
+    cards:
+      - type: custom:futestuning-card
+        view: home
+  - title: Kazánház
+    path: kazanhaz
+    icon: mdi:pipe-valve
+    type: panel
+    cards:
+      - type: custom:futestuning-card
+        view: plant
+  - title: Helyiségek
+    path: helyisegek
+    icon: mdi:thermostat
+    type: panel
+    cards:
+      - type: custom:futestuning-card
+        view: rooms
