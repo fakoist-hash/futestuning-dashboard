@@ -1,6 +1,5 @@
 {
   "name": "Fűtéstuning Dashboard",
-  "filename": "futestuning-card.js",
-  "content_in_root": false,
+  "filename": "futestuning-dashboard.js",
   "render_readme": true
 }
