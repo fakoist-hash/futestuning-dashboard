@@ -1,0 +1,37 @@
+name: Validate dashboard bundle
+on:
+  push:
+    paths:
+      - 'dist/**'
+      - 'hacs.json'
+      - 'examples/**'
+      - '.github/workflows/validate-dashboard.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check dist/futestuning-dashboard.js
+          node --check dist/futestuning-card.js
+      - name: Check HACS package and entity safety
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('.')
+          h=json.loads((p/'hacs.json').read_text())
+          assert h['filename']=='futestuning-dashboard.js',h
+          src=(p/'dist'/h['filename']).read_text()
+          assert 'customElements.define("futestuning-card"' in src
+          assert 'callService("number","set_value"' in src
+          assert 'callService("switch"' not in src
+          assert 'callService("climate"' not in src
+          assert (p/'examples/dashboard.yaml').is_file()
+          print('Dashboard package verified')
+          PY
