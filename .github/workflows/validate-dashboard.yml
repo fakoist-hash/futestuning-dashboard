@@ -38,3 +38,15 @@ jobs:
           assert (p/'examples/dashboard.yaml').is_file()
           print('Dashboard package verified')
           PY
+
+      - name: Install browser test tools
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test home layout and navigation
+        run: node tests/home-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-preview
+          path: fooldal.png
