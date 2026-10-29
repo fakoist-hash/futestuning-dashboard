@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import json, pathlib
+          import json, pathlib, re
           p=pathlib.Path('.')
           h=json.loads((p/'hacs.json').read_text())
           assert h['filename']=='futestuning-dashboard.js',h
@@ -31,7 +31,10 @@ jobs:
           assert 'customElements.define("futestuning-card"' in src
           assert 'callService("number","set_value"' in src
           assert 'callService("switch"' not in src
-          assert 'callService("climate"' not in src
+          calls=re.findall(r'callService\(\s*"([^"]+)"\s*,\s*"([^"]+)"', src)
+          assert calls, 'No service calls found'
+          assert set(calls) <= {('number','set_value'),('climate','set_temperature')}, calls
+          assert src.count('callService(') == len(calls), 'Unvalidated dynamic service call'
           assert (p/'examples/dashboard.yaml').is_file()
           print('Dashboard package verified')
           PY
