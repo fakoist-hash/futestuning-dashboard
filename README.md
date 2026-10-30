@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.0
+# Fűtéstuning Dashboard · 0.6.3
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.0 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.3 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -25,3 +25,7 @@ A kép szerinti elrendezést HTML/SVG valósítja meg. A képgenerált fotóreal
 `tests/visual-browser.cjs`: mindhárom oldal öt szélességen; kilógás; TECH célértékparancs; navigáció; szobatermosztát célérték; Eco; Gree ki/be és üzemmód, ventilátor; szivattyúparancs tiltása; hiányzó pufferadat és küszöbértékek. A teszt egy elkülönített Home Assistant tesztobjektumot használ, nem a fizikai rendszert. A CI képernyőképei tesztadatokat tartalmaznak.
 
 A Home Assistant alatti telepítést és a fizikai eszközválaszokat külön kell ellenőrizni; a GitHub-ellenőrzés sikere ezeket nem bizonyítja.
+
+## SONOFF TRV módok
+
+A SONOFF TRV-ZB SonoffLAN entitások `heat` módja kézi, `auto` módja időprogramos, `off` módja az eszköz Eco/fagyvédelmi célértékét használja. Ezek a helyiségpanelen külön, ténylegesen támogatott módválasztóként szerepelnek. A +/− kézi módban állítható; automata módból a kártya nem vált át észrevétlenül. A heti programot nem írja át. Forrás: a SonoffLAN `XThermostatTRVZB` implementációja. A hasonló nevű Matter és SONOFF entitások eltérhetnek; a kártya az ismert SONOFF entitásokat használja.
