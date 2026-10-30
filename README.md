@@ -1,28 +1,27 @@
-# Fűtéstuning Dashboard
+# Fűtéstuning Dashboard · 0.6.0
 
-Saját, kísérleti Home Assistant Lovelace-kártya. **v0.1.0 – első működési alap, HA alatt még nem tesztelt.**
+Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
-Három nézet: Főoldal, Kazánház és Helyiségek. A helyiségek sorrendje **Emelet → Földszint → Pince**, vízszintes szintenkénti sávokkal. A kártya ismert TECH, SONOFF és radiátortermosztát entitásokat használ. Az ismeretlen Gree-hozzárendeléseket és hiányzó HMV-méréseket nem találja ki.
+- Főoldal: két nagy körkártya, három kisebb kártya, rendszerösszegzés és kazánházi előnézet.
+- Kazánház: külön SVG kazán/puffer, három TECH kör, HMV és hozzáépítés. A rajz csak a három TECH célhőmérsékletét módosítja. A csövek és irányok sematikusak.
+- Helyiségek: emelet, földszint, pince; kiválasztható szobák, termosztátív, külön szelepállítás és a ténylegesen közölt presetek. A Gree klíma vezérlői csak a hozzájuk rendelt ismert klímaentitásokra küldenek parancsot.
 
-## Biztonság
+## Telepítés és frissítés
 
-A program csak a három ismert `number.wifi_rs_futeskor_*_szelep_beallitott_hom` célhőmérsékletet módosítja `number.set_value` útján. A MINI-D állapotot **hőigényként** jelzi, nem mint szivattyú-visszajelzést. Szivattyúvezérlés és a kapcsolóállapotokra alapozott hamis áramlásanimáció nincs.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.0 látszik.
 
-## Első telepítés
+A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
-A GitHub-tároló jelenleg privát. A HACS egyedi tárhely-hozzáadásához a HACS verziójától és a GitHub jogosultságtól függően külön hozzáférés szükséges.
+## Állapotok és korlátok
 
-1. A Home Assistant HACS felületén válaszd az **Egyéni tárolók / Custom repositories** hozzáadását.
-2. GitHub repository: `fakoist-hash/futestuning-dashboard`; kategória **Dashboard** (egyes verzióknál **Lovelace**).
-3. Ha a privát tároló elérhető a HACS számára, telepítsd a kártyát és ellenőrizd, hogy a JS-erőforrás automatikusan regisztrálódott-e. A resource URL jellemzően `/hacsfiles/futestuning-dashboard/futestuning-card.js`; a tényleges útvonalat a HACS által megadott érték alapján ellenőrizd.
-4. Új, külön tesztdashboard nyers konfigurációjaként használd az `examples/dashboard.yaml` fájlt. A meglévő dashboardok változatlanok maradjanak.
+A koncepcióképek mintaértékei nem kerülnek át élő adatként. Nincs háromzónás puffermérés, ha csak a TH Elite egy mérési pontja ismert. Az ismeretlen érték `—` vagy „Nincs adat”. Az Eco/Komfort/Éjszaka/Távollét csak akkor aktív, ha az adott termosztát `preset_modes` listája tartalmazza a megfelelő módot; a kártya nem rendel hozzá kitalált célhőmérsékleteket.
 
-**Ha a privát tárolóhoz a HACS nem fér hozzá**, az alternatív első telepítés: `dist/futestuning-card.js` feltöltése a HA `/config/www/futestuning-card.js` helyére, JavaScript-modul erőforrásként `/local/futestuning-card.js`, majd az `examples/dashboard.yaml` mintával egy új dashboard létrehozása.
+A szivattyúkhoz opcionálisan `pump_feedback_entities` adható meg 1, 2, 3 kulcsokkal (valódi on/off visszajelzés). Enélkül a padló becslése: MINI-D on és TH Elite >30 °C; a radiátoré: MINI-D on és TH Elite >35 °C. Az állapot „Becslés” feliratot kap. A pince on állapotára nincs megadott becslési küszöb, így visszajelzés nélkül ismeretlen. Nem küldünk kapcsolási parancsot szivattyúnak vagy keverőszelepnek. A forgó szimbólum a feliratozott állapotot jelzi, nem mért vízáramlást.
 
-## Fejlesztési állapot
+A kép szerinti elrendezést HTML/SVG valósítja meg. A képgenerált fotórealisztikus gépészeti dekoráció helyett olvasható vektoros elemek szerepelnek.
 
-- A kártya forrása feltöltve; GitHubon ellenőrizhető.
-- Ez még nem az elfogadott három prémium látványterv végleges, pixelpontos megvalósítása.
-- A Home Assistant élő környezetében még nincs kipróbálva.
-- Nem módosítja a TECH, SONOFF, Matter vagy Gree integrációkat.
-- A HACS frissítés a GitHubon később létrehozott release/verzió kezelésétől és a privát hozzáféréstől függ.
+## Ellenőrzés
+
+`tests/visual-browser.cjs`: mindhárom oldal öt szélességen; kilógás; TECH célértékparancs; navigáció; szobatermosztát célérték; Eco; Gree ki/be és üzemmód, ventilátor; szivattyúparancs tiltása; hiányzó pufferadat és küszöbértékek. A teszt egy elkülönített Home Assistant tesztobjektumot használ, nem a fizikai rendszert. A CI képernyőképei tesztadatokat tartalmaznak.
+
+A Home Assistant alatti telepítést és a fizikai eszközválaszokat külön kell ellenőrizni; a GitHub-ellenőrzés sikere ezeket nem bizonyítja.

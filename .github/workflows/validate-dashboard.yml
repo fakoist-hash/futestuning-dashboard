@@ -1,11 +1,7 @@
 name: Validate dashboard bundle
 on:
   push:
-    paths:
-      - 'dist/**'
-      - 'hacs.json'
-      - 'examples/**'
-      - '.github/workflows/validate-dashboard.yml'
+    paths: ['dist/**', 'hacs.json', 'examples/**', 'tests/**', '.github/workflows/validate-dashboard.yml']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -15,38 +11,26 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Check JavaScript syntax
+      - name: Check JavaScript and HACS package
         run: |
           node --check dist/futestuning-dashboard.js
           node --check dist/futestuning-card.js
-      - name: Check HACS package and entity safety
-        shell: bash
-        run: |
           python3 - <<'PY'
-          import json, pathlib, re
+          import json,pathlib
           p=pathlib.Path('.')
           h=json.loads((p/'hacs.json').read_text())
-          assert h['filename']=='futestuning-dashboard.js',h
-          src=(p/'dist'/h['filename']).read_text()
-          assert 'customElements.define("futestuning-card"' in src
-          assert 'callService("number","set_value"' in src
-          assert 'callService("switch"' not in src
-          calls=re.findall(r'callService\(\s*"([^"]+)"\s*,\s*"([^"]+)"', src)
-          assert calls, 'No service calls found'
-          assert set(calls) <= {('number','set_value'),('climate','set_temperature')}, calls
-          assert src.count('callService(') == len(calls), 'Unvalidated dynamic service call'
+          assert h['filename']=='futestuning-dashboard.js'
+          assert (p/'dist/futestuning-dashboard.js').read_bytes()==(p/'dist/futestuning-card.js').read_bytes()
           assert (p/'examples/dashboard.yaml').is_file()
-          print('Dashboard package verified')
           PY
-
       - name: Install browser test tools
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Test home layout and navigation
-        run: node tests/home-browser.cjs
+      - name: Check all three views, controls and service restrictions
+        run: node tests/visual-browser.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: home-preview
-          path: fooldal.png
+          name: dashboard-previews-test-data
+          path: test-results/*.png
