@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.7
+# Fűtéstuning Dashboard · 0.6.8
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.7 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.8 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -55,8 +55,12 @@ Emeleti fürdő, Hanna háló és Nappali/konyha/étkező: közös radiátorkör
 
 Igazolt működéshez meglévő `pump_feedback_entities: {3: ...}` TECH szivattyúrelé-entitás vagy `room_heating_entities` helyiségi visszajelzés kell. Ezekhez nem adunk kitalált entitásazonosítót. A szivattyú-hőmérséklet és a letapadás elleni védelem kapcsolója nem reléállapot. A puffer ≥35 °C és MINI-D becslése továbbra is elérhető a részletekben, de nem kapcsolja pirosra a helyiségkártyát. A „Fűt” állapot szivattyúalapú, nem helyiségenkénti hőleadásmérés.
 
-Visszajelzés nélkül az aktív hőigény zöld, „Hőigény · nem igazolt”; igazoltan álló szivattyúnál „Hőigény · várakozik”. Szülői háló és Lenti garázs számára nincs igazolt Computherm-hőigény entitás: az engedélyező okoskonnektor bekapcsolása önmagában nem hőigény. Ezért ezek „Nincs adat” állapotúak, amíg meglévő, ellenőrzött `room_demand_entities` és működési visszajelzés nincs hozzárendelve.
+Visszajelzés nélkül vagy álló szivattyúnál az aktív hőigény zöld, „Hőigény” felirattal. Szülői háló és Lenti garázs számára nincs igazolt Computherm-hőigény entitás: az engedélyező okoskonnektor bekapcsolása önmagában nem hőigény. Ezért ezek „Nincs adat” állapotúak, amíg meglévő, ellenőrzött `room_demand_entities` és működési visszajelzés nincs hozzárendelve.
 
 Mentés: `backup/before-room-colors-2026-11-01` ág, a módosítás előtti a55b2198f585995ae3dd8744960312122d040cfe commit teljes forrásával és példakonfigurációjával. Ez repository-mentés, nem az élő Home Assistant exportja. Az élő felület elérését a Work böngészőjében `ERR_CERT_COMMON_NAME_INVALID` blokkolta; a hálózathoz és a tanúsítvány-ellenőrzéshez nem nyúltunk.
 
-Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.7. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
+Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.8. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
+
+## Rövid állapotfeliratok · 0.6.8
+
+A helyiségkártyákon és részleteiken kizárólag Fűt / Hőigény / Nem fűt / Nincs adat szerepel állapotként. A magyarázó megjegyzések, állapot-tooltippek és a parancs elfogadását követő ellenőrzési megjegyzés nem jelennek meg. A szín- és állapotszámítás, a kezelőszervek, valamint a valódi parancshibák kijelzése változatlan.
