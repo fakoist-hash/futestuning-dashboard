@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.8
+# Fűtéstuning Dashboard · 0.6.9
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.8 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.9 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -53,14 +53,18 @@ A SONOFF TRV `hvac_action` értéke hőigény, nem szivattyú-visszajelzés. Ké
 
 Emeleti fürdő, Hanna háló és Nappali/konyha/étkező: közös radiátorköri hőigény a SONOFF MINI-D `switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1` állapotából. A meglévő `switch.radiator_szivattyu_mini_d` alias csak akkor tartalék, ha a közvetlen SONOFF entitás nem létezik; elérhetetlen közvetlen entitás esetén nincs visszaesés régi aliasadatra.
 
-Igazolt működéshez meglévő `pump_feedback_entities: {3: ...}` TECH szivattyúrelé-entitás vagy `room_heating_entities` helyiségi visszajelzés kell. Ezekhez nem adunk kitalált entitásazonosítót. A szivattyú-hőmérséklet és a letapadás elleni védelem kapcsolója nem reléállapot. A puffer ≥35 °C és MINI-D becslése továbbra is elérhető a részletekben, de nem kapcsolja pirosra a helyiségkártyát. A „Fűt” állapot szivattyúalapú, nem helyiségenkénti hőleadásmérés.
+Igazolt működéshez meglévő `pump_feedback_entities: {3: ...}` TECH szivattyúrelé-entitás vagy `room_heating_entities` helyiségi visszajelzés kell. Ezekhez nem adunk kitalált entitásazonosítót. A szivattyú-hőmérséklet és a letapadás elleni védelem kapcsolója nem reléállapot. TECH-visszajelzés nélkül a három TRV nélküli helyiség a MINI-D és a puffer alapján kap állapotot: Nappali/konyha/étkező ≥30 °C, Emeleti fürdő és Hanna háló ≥35 °C esetén piros, aktív hőigény mellett. A megadott TECH-visszajelzés elsőbbséget kap, elérhetetlensége nem vált vissza becslésre. A „Fűt” állapot szivattyúalapú, nem helyiségenkénti hőleadásmérés.
 
 Visszajelzés nélkül vagy álló szivattyúnál az aktív hőigény zöld, „Hőigény” felirattal. Szülői háló és Lenti garázs számára nincs igazolt Computherm-hőigény entitás: az engedélyező okoskonnektor bekapcsolása önmagában nem hőigény. Ezért ezek „Nincs adat” állapotúak, amíg meglévő, ellenőrzött `room_demand_entities` és működési visszajelzés nincs hozzárendelve.
 
 Mentés: `backup/before-room-colors-2026-11-01` ág, a módosítás előtti a55b2198f585995ae3dd8744960312122d040cfe commit teljes forrásával és példakonfigurációjával. Ez repository-mentés, nem az élő Home Assistant exportja. Az élő felület elérését a Work böngészőjében `ERR_CERT_COMMON_NAME_INVALID` blokkolta; a hálózathoz és a tanúsítvány-ellenőrzéshez nem nyúltunk.
 
-Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.8. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
+Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.9. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
 
-## Rövid állapotfeliratok · 0.6.8
+## Rövid állapotfeliratok · 0.6.9
 
 A helyiségkártyákon és részleteiken kizárólag Fűt / Hőigény / Nem fűt / Nincs adat szerepel állapotként. A magyarázó megjegyzések, állapot-tooltippek és a parancs elfogadását követő ellenőrzési megjegyzés nem jelennek meg. A szín- és állapotszámítás, a kezelőszervek, valamint a valódi parancshibák kijelzése változatlan.
+
+## Főoldali színek és helyiségenkénti határok · 0.6.9
+
+A főoldali fűtési körök teljes háttere szürke, ha nincs hőigény; piros, ha hőigény és működés van; zöld, ha hőigény van, de a működés nem aktív vagy ismeretlen. A feliratok: Fűt / Hőigény / Nem fűt / Nincs adat. A radiátorkör kártyája és az összegzés is a közvetlen SONOFF MINI-D entitást használja. A nappali helyiséghatára 30 °C (beleértve a pontos határértéket); a két másik TRV nélküli helyiségé és a főoldali radiátorköré 35 °C. Mindegyikhez aktív radiátorköri hőigény kell.
