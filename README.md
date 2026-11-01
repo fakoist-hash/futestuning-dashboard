@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.11
+# Fűtéstuning Dashboard · 0.6.12
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.11 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.12 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -59,7 +59,7 @@ Visszajelzés nélkül vagy álló szivattyúnál az aktív hőigény zöld, „
 
 Mentés: `backup/before-room-colors-2026-11-01` ág, a módosítás előtti a55b2198f585995ae3dd8744960312122d040cfe commit teljes forrásával és példakonfigurációjával. Ez repository-mentés, nem az élő Home Assistant exportja. Az élő felület elérését a Work böngészőjében `ERR_CERT_COMMON_NAME_INVALID` blokkolta; a hálózathoz és a tanúsítvány-ellenőrzéshez nem nyúltunk.
 
-Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.11. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
+Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.12. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
 
 ## Rövid állapotfeliratok · 0.6.9
 
@@ -78,3 +78,7 @@ A nappali/konyha/étkező kártyáján a padlófűtés a saját SONOFF MINI-D je
 A nappali csempéjén a két fűtési ág állapotjelzése mellett ismét megjelenik a −/+ gombpár. A korábbi állíthatósági szabály változatlan: hozzárendelt fűtési termosztát nélkül a gombok inaktívak. A nappali Gree klímája külön vezérlés, a gombok nem módosítják azt vagy a TECH vízhőmérsékletét.
 
 A Fűt állapotú helyiségkártyák fejlécében lángikon jelenik meg; Hőigény, Nem fűt vagy Nincs adat esetén nem.
+
+## Mozgó áramlásjelzés · 0.6.12
+
+A Kazánház rajzán csak a működőnek jelzett három TECH fűtési körön jelennek meg mozgó nyilak. A meleg ágon a puffertől a szivattyún át a fűtőkör felé, a hideg ágon a körtől vissza a pufferig haladnak. A szivattyúállapot forrása változatlan: hozzárendelt TECH-visszajelzés, egyébként a korábbi MINI-D/puffer alapú logika. Ez sematikus állapotjelzés, nem áramlásmérés. Az animáció nem küld vezérlési parancsot, a célértékállítások megmaradnak. Csökkentett mozgás rendszerbeállításnál a mozgó nyilak rejtve maradnak.
