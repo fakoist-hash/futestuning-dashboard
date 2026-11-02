@@ -1,0 +1,32 @@
+# Home Assistant package; merge using the existing package configuration.
+# Display only: no switch, script or automation actions.
+template:
+- binary_sensor:
+  - name: Fűtéstuning Szülői háló fűt
+    unique_id: futestuning_szuloi_halo_fut
+    default_entity_id: binary_sensor.futestuning_szuloi_halo_fut
+    device_class: heat
+    availability: '{{ is_number(states(''sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power''))
+      and states(''sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power'')
+      | float(0) >= 0 and state_attr(''sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power'',
+      ''unit_of_measurement'') == ''W'' }}'
+    state: '{{ states(''sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power'')
+      | float(0) >= 10 }}'
+    delay_on:
+      seconds: 5
+    delay_off:
+      seconds: 5
+  - name: Fűtéstuning Hozzáépített garázs fűt
+    unique_id: futestuning_hozzaepitett_garazs_fut
+    default_entity_id: binary_sensor.futestuning_hozzaepitett_garazs_fut
+    device_class: heat
+    availability: '{{ is_number(states(''sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power''))
+      and states(''sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power'')
+      | float(0) >= 0 and state_attr(''sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power'',
+      ''unit_of_measurement'') == ''W'' }}'
+    state: '{{ states(''sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power'')
+      | float(0) >= 10 }}'
+    delay_on:
+      seconds: 5
+    delay_off:
+      seconds: 5

@@ -23,6 +23,10 @@ jobs:
           assert (p/'dist/futestuning-dashboard.js').read_bytes()==(p/'dist/futestuning-card.js').read_bytes()
           assert (p/'examples/dashboard.yaml').is_file()
           PY
+      - name: Check display-only template sensors
+        run: |
+          python3 -m pip install PyYAML Jinja2
+          python3 tests/extension-template.py
       - name: Install browser test tools
         run: |
           npm install --no-save playwright@1.56.1

@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.12
+# Fűtéstuning Dashboard · 0.6.13
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.12 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.13 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -82,3 +82,53 @@ A Fűt állapotú helyiségkártyák fejlécében lángikon jelenik meg; Hőigé
 ## Mozgó áramlásjelzés · 0.6.12
 
 A Kazánház rajzán csak a működőnek jelzett három TECH fűtési körön jelennek meg mozgó nyilak. A meleg ágon a puffertől a szivattyún át a fűtőkör felé, a hideg ágon a körtől vissza a pufferig haladnak. A szivattyúállapot forrása változatlan: hozzárendelt TECH-visszajelzés, egyébként a korábbi MINI-D/puffer alapú logika. Ez sematikus állapotjelzés, nem áramlásmérés. Az animáció nem küld vezérlési parancsot, a célértékállítások megmaradnak. Csökkentett mozgás rendszerbeállításnál a mozgó nyilak rejtve maradnak.
+
+## 0.6.13 – hozzáépítés teljesítményalapú kijelzése
+
+A meglévő `Szülői háló` és `Lenti garázs` helyiségkártya a két külön
+sablonérzékelőt követi. A konnektor kapcsolóállapota nem jelent fűtést.
+A kártya csak megjelenít: `on` → piros / Fűt / láng;
+`off` → szürke / Nem fűt; hiányzó vagy hibás mérés, illetve hiányzó
+sablonérzékelő → Nincs adat. A küszöb legalább 10 W, mindkét irányban
+5 másodperc késleltetéssel, a Home Assistant szerverén.
+A kazánház statikus nyilai eltűntek; az üzemelő TECH körök mozgó nyilai megmaradtak.
+
+### Telepítési függőség
+
+A HACS frissítés **nem telepít szerveroldali sablonérzékelőket**.
+A `examples/extension-heating-package.yaml` a két sablont tartalmazza.
+Az élő konfiguráció mentése és ellenőrzése után a meglévő packages
+betöltésbe kell illeszteni; ha nincs packages használatban, a `template:`
+alatti listaelemet a meglévő template-listához kell hozzáadni.
+Nem szabad második `template:` vagy `homeassistant:` gyökérkulccsal
+felülírni a jelenlegi konfigurációt. A konfiguráció ellenőrzése után
+csak a template-entitásokat kell újratölteni, ha a meglévő betöltési mód ezt engedi.
+A létrejött entitásazonosítókat ellenőrizni kell; ütközés vagy korábbi
+átnevezés esetén a már létező Helyiségek kártya `room_heating_entities`
+hozzárendelésében kell a tényleges azonosítót megadni, új dashboard nélkül.
+
+| Helyiség | Teljesítménymérés | Elvárt sablonérzékelő |
+|---|---|---|
+| Szülői háló | `sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power` | `binary_sensor.futestuning_szuloi_halo_fut` |
+| Lenti garázs (hozzáépített garázs) | `sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power` | `binary_sensor.futestuning_hozzaepitett_garazs_fut` |
+
+Az azonosítók a feltöltött diagnosztikában W mértékegységgel és power
+eszközosztállyal szerepelnek. A 2026-11-01-i mentésben mindkét mérés 0 W,
+így a sablonok stabilizálódása után mindkét kártya Nem fűt állapotot kapna.
+A szülői háló konnektora ugyanebben a mentésben be volt kapcsolva.
+Ez történeti adat, nem aktuális állapot vagy futás közbeni idősor.
+
+### Ellenőrzés és korlátok
+
+`python tests/extension-template.py` (PyYAML és Jinja2) ellenőrzi a két
+sablont, a 9,9 / 10 / 10,1 W határt, az elérhetőséget és a két beállított
+5 másodperces késleltetést. A böngészős teszt mindkét kártyán ellenőrzi
+az on/off/unknown/unavailable/hiányzó állapotot, a lángot, a megmaradt
+gombokat és azt, hogy a kijelzés nem küld eszközparancsot.
+A Home Assistant tényleges időzítőinek életciklusa és az élő mérési
+értékek csak az otthoni rendszerben ellenőrizhetők.
+
+A forrás módosítása előtti állapot: `d6767e7fe68cef63b25de352b9cf8e850cff06cd`,
+helyi mentési ág: `backup/before-extension-power-2026-11-02`.
+Az élő dashboard és HA konfiguráció mentése/telepítése nem történt meg:
+a hozzáférési próba `ERR_CERT_COMMON_NAME_INVALID` hibával megállt.
