@@ -1,0 +1,19 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const definitions=new Map();
+const context={HTMLElement:class{attachShadow(){this.shadowRoot={innerHTML:'',querySelectorAll:()=>[],querySelector:()=>null};}dispatchEvent(e){this.lastEvent=e;}},customElements:{define:(n,c)=>definitions.set(n,c),get:n=>definitions.get(n)},window:{customCards:[]},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}}};
+vm.createContext(context);vm.runInContext(fs.readFileSync(process.argv[2]||'otthon-card.js','utf8'),context);
+const Card=definitions.get('otthon-card');assert(Card);const c=new Card();c.setConfig({});const calls=[];const states={};c.lights.forEach((x,i)=>states[x.entity]={state:i===0?'on':'off',attributes:{}});c.hass={states,callService:async(...args)=>calls.push(args)};
+(async()=>{
+ assert(c.shadowRoot.innerHTML.includes('Részben bekapcsolva'));
+ assert.equal((c.lightsPage().match(/class="reserved"/g)||[]).length,8);
+ await c.toggleLight(0);assert.equal(calls[0][0],'switch');assert.equal(calls[0][1],'turn_off');
+ await c.group(true);assert.equal(calls[1][0],'homeassistant');assert.equal(calls[1][2].entity_id.length,2);assert(calls[1][2].entity_id.every(id=>/kanape|cserepkalyha/.test(id)));
+ states[c.lights[1].entity].state='unavailable';const before=calls.length;await c.group(false);await c.toggleLight(1);assert.equal(calls.length,before);assert(c.lightsPage().includes('Nem elérhető'));
+ c.page='gates';const gates=c.gatesPage();assert.equal((gates.match(/data-gate="\d" disabled/g)||[]).length,4);assert(gates.includes('Nincs helyzet-visszajelzés'));assert(gates.includes('Kamera nincs beállítva'));
+ states['sensor.kapu_cam']={state:'on',attributes:{friendly_name:'Kapu cam'}};assert.equal(c.cameraId(c.gates[0]),null);
+ states['camera.kapu']={state:'idle',attributes:{friendly_name:'Kapu cam'}};assert.equal(c.cameraId(c.gates[0]),'camera.kapu');
+ c.page='alarm';assert(c.alarmPage().includes('Riasztó nem elérhető'));assert.equal((c.alarmPage().match(/Nem elérhető/g)||[]).length,5);
+ c.page='lights';c._hass.callService=async()=>{throw Error('Teszt hiba')};states[c.lights[0].entity].state='on';await c.toggleLight(0);assert(c.message.includes('Teszt hiba'));assert.equal(c.pending,false);
+ const x=c.lightTile({name:'<img onerror="bad">',entity:c.lights[0].entity},0);assert(!x.includes('<img onerror'));assert(x.includes('&lt;img'));
+ console.log('PASS: individual/group lighting, partial/missing states, 8 reserves, gates disabled, camera domain matching, unavailable alarm/sensors, service error, escaping. No physical devices contacted.');
+})().catch(e=>{console.error(e);process.exit(1)});
