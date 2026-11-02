@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.13
+# Fűtéstuning Dashboard · 0.6.14 – előnézet
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -132,3 +132,24 @@ A forrás módosítása előtti állapot: `d6767e7fe68cef63b25de352b9cf8e850cff0
 helyi mentési ág: `backup/before-extension-power-2026-11-02`.
 Az élő dashboard és HA konfiguráció mentése/telepítése nem történt meg:
 a hozzáférési próba `ERR_CERT_COMMON_NAME_INVALID` hibával megállt.
+
+## 0.6.14 – jóváhagyásra váró kazánházi rajz
+
+A TRV-s helyiségek hőigénye és a radiátorkör működése együtt adja a piros
+Fűt állapotot. Külön helyiségi visszajelzés hiányában ugyanaz a
+radiátorkör-jelzés érvényes, mint a TRV nélküli helyiségeknél:
+TECH szivattyú-visszajelzés, ennek hozzárendelése nélkül MINI-D + puffer ≥35 °C.
+A hideg puffer mellett fennálló hőigény zöld, hőigény nélkül szürke.
+
+A hozzáépítés rajzán három szivattyú szerepel: hidraulikusváltó-töltő,
+lenti garázs és szülői háló. A két külön kör a 0.6.13-ban elkészített,
+legalább 10 W-os, kétirányú 5 másodperces késleltetésű sablonérzékelőt követi.
+A töltő jelzése bármelyik kör működésekor forog. Csak akkor áll, ha mindkét
+kör állapotáról ismert, hogy áll; egyébként Nincs adat. A töltő állapota
+itt a megbeszélt összefüggésből származik, nincs külön mérője hozzárendelve.
+A mozgó nyilak a primer előremenő/visszatérő és a működő szekunder körök
+előremenő/visszatérő csövein haladnak. Az álló vagy ismeretlen körök nem animálnak.
+
+Ez kizárólag kijelzés: szivattyúhoz vagy okoskonnektorhoz nem küld parancsot.
+A változat jóváhagyásig külön előnézeti ágon marad; a main és a telepített
+Home Assistant nincs módosítva. A háromoldalas dashboard YAML változatlan.
