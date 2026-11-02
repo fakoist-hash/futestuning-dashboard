@@ -1,0 +1,8 @@
+title: Otthon
+views:
+  - title: Otthon
+    path: otthon
+    icon: mdi:home-outline
+    panel: true
+    cards:
+      - type: custom:otthon-card
