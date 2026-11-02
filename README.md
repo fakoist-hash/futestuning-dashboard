@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.14 – előnézet
+# Fűtéstuning Dashboard · 0.6.14
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.13 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.14 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -133,7 +133,7 @@ helyi mentési ág: `backup/before-extension-power-2026-11-02`.
 Az élő dashboard és HA konfiguráció mentése/telepítése nem történt meg:
 a hozzáférési próba `ERR_CERT_COMMON_NAME_INVALID` hibával megállt.
 
-## 0.6.14 – jóváhagyásra váró kazánházi rajz
+## 0.6.14 – jóváhagyott kazánházi rajz
 
 A TRV-s helyiségek hőigénye és a radiátorkör működése együtt adja a piros
 Fűt állapotot. Külön helyiségi visszajelzés hiányában ugyanaz a
@@ -151,5 +151,5 @@ A mozgó nyilak a primer előremenő/visszatérő és a működő szekunder kör
 előremenő/visszatérő csövein haladnak. Az álló vagy ismeretlen körök nem animálnak.
 
 Ez kizárólag kijelzés: szivattyúhoz vagy okoskonnektorhoz nem küld parancsot.
-A változat jóváhagyásig külön előnézeti ágon marad; a main és a telepített
-Home Assistant nincs módosítva. A háromoldalas dashboard YAML változatlan.
+A felhasználó a rajzot és a logikát jóváhagyta. A 0.6.14 a main ágra kerül;
+a telepített Home Assistant frissítése külön lépés. A háromoldalas dashboard YAML változatlan.
