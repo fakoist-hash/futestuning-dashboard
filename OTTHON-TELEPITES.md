@@ -1,4 +1,4 @@
-# Otthon 1.0.0
+# Otthon 1.0.1
 
 Új, önálló `custom:otthon-card`, a meglévő Fűtéstuning HACS csomag részeként.
 A fűtés kódja és dashboard-konfigurációja változatlan. Az új kód külön lezárt
@@ -21,10 +21,10 @@ hozza létre az új dashboardot.
 
 Négy, a korábbi listából ismert világítási kör. Nappali összes be/ki: a Kanapé
 és Cserépkályha explicit közös szolgáltatáshívása; nem keres ki találomra jelenetet.
-Részleges állapot, elérhetetlenség és parancshiba külön látható. 8 kis tartalékhely.
-Fényerő csak támogatott `light` entitásoknál. iPaden 4, telefonon 2 oszlop.
+Részleges állapot, elérhetetlenség és parancshiba külön látható. A meglévő csempék két oszlopban kitöltik a helyet; üres tartalékcsempéket nem rajzolunk.
+Fényerő csak támogatott `light` entitásoknál. iPaden és telefonon két oszlop, nagy érintési felületekkel.
 
-Kapuk: az impulzusvezérlés ellenőrzéséig a működtető gomb tiltott.
+Kapuk: elérhető entitásnál a működtető gomb aktív. Ellenőrzött impulzusvezérlés hiányában a HA saját vezérlőablakát nyitja meg, és nem küld automatikus reléparancsot.
 Csak ellenőrzés után adj meg `verified_action: {domain: switch, service: turn_on}`
 értéket a megfelelő kapuhoz. Ez önmagában nem állítja be a relé impulzusidejét!
 A `position_entity` opcionális, ellenőrzött on=nyitott/off=zárt bináris érzékelő.
@@ -35,8 +35,7 @@ ennek hiányában kizárólag egyetlen, pontos névegyezésű `camera.*` fogadha
 A `sensor.*` kameraadat nem kamerakép. A CAM-B1P/CAM-S2 integrációja még nincs
 elvégezve; nincs feltételezett RTSP/ONVIF-cím. A kép megnyitása a HA részletablaka.
 
-Riasztó: a HA beépített alarm-panel kártyája, a saját funkció-/PIN-kezelésével.
-Nincs saját élesítési implementáció vagy tárolt PIN. Hiányzó riasztó/érzékelő
+Riasztó: két nagy otthoni/távolléti élesítőgomb, a támogatott funkciók alapján. Kódigény esetén a HA saját vezérlőablaka nyílik meg. A hatástalanítás szintén a HA saját vezérlőjével történik. Nincs tárolt PIN. A mozgásérzékelők keskenyebb panelt kapnak. Hiányzó riasztó/érzékelő
 nem jelenik meg hatástalanított/nincs mozgás állapotként.
 
 Opcionális kártyakonfigurációk: `lights`, `gates`, `alarm_entity`, `sensors`.
