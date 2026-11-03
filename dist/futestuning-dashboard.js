@@ -163,7 +163,7 @@ function gateDrawing(i){
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const css=`
 /* Otthon 1.0.3: approved 4-gate blueprint composition */
-.root.gates-view{background:radial-gradient(ellipse at 55% 0%,#102b49 0%,#061426 74%);border-radius:20px;min-height:min(100%,740px);padding:14px 18px 10px}
+.root.gates-view{position:relative;background:radial-gradient(ellipse at 55% 0%,#102b49 0%,#061426 74%);border-radius:20px;min-height:min(100%,740px);padding:14px 18px 10px}
 .root.gates-view header{display:flex;align-items:center;margin:0;position:absolute;left:32px;top:24px;z-index:1}
 .root.gates-view header .brand{background:transparent;padding:0;color:#b5e9ff}
 .root.gates-view header h1{font-size:21px;font-weight:600}
