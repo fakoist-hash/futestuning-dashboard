@@ -1,4 +1,4 @@
-/* Otthon dashboard 1.0.5 — independent of Fűtéstuning controls. */
+/* Otthon dashboard 1.0.6 — independent of Fűtéstuning controls. */
 (()=>{
 const DEFAULT_LIGHTS=[
  {name:'Kanapé',entity:'switch.kanape_sonoff_10022d0f14_1',area:'Nappali',icon:'mdi:floor-lamp'},
@@ -12,16 +12,57 @@ const DEFAULT_GATES=[
  {name:'Fedett terasz garázsajtó',entity:'switch.fedett_terasz_garazsajto_sonoff_10016811d4',camera_name:null}
 ];
 function gateDrawing(i){
- const start='<svg class="gate-art" viewBox="0 0 340 170" role="img" aria-label="Kapubejárat sematikus ábrája" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">';
- const end='</g></svg>';
- if(i===0){const bars=Array.from({length:19},(_,j)=>{let x=69+j*11.2;let y=56+22*Math.abs(x-170)/101;return '<path d="M'+x.toFixed(1)+' '+y.toFixed(1)+' V128"/><path d="M'+x.toFixed(1)+' '+(y-6).toFixed(1)+' l-2.4 6 h4.8z"/>';}).join('');return start+'<g stroke-width="2.5"><rect x="20" y="45" width="43" height="105" rx="2"/><rect x="277" y="45" width="43" height="105" rx="2"/><path d="M17 45 H66 M274 45 H323 M64 81 Q170 20 276 81 V145 H64 Z M170 46 V145 M64 119 H276 M64 133 H276"/></g><g stroke-width="1.3" opacity=".8">'+bars+'<path d="M26 64h31 M26 84h31 M26 104h31 M26 124h31 M283 64h31 M283 84h31 M283 104h31 M283 124h31"/></g><path d="M6 151 H334" stroke-width="2"/>'+end;}
- if(i===2)return start+'<g stroke-width="2.5"><path d="M20 47 H320 V151 H20 Z"/><path d="M12 47 H328 M12 42 H328 M18 47 V28 H322 V47"/><rect x="70" y="70" width="200" height="81" rx="1"/><path d="M70 91 H270 M70 111 H270 M70 131 H270 M115 28 V38 M225 28 V38"/><path d="M8 152 H332"/></g><g stroke-width="1.7"><path d="M110 53v10 m0 0q-11 5-11 8h22q0-3-11-8 M230 53v10 m0 0q-11 5-11 8h22q0-3-11-8"/></g>'+end;
- if(i===1)return start+'<g stroke-width="2.5"><path d="M45 152 V25 L300 42 V152"/><path d="M34 22 L305 41 M42 31 L302 48"/><path d="M78 150 V91 H124 V150 M144 150 V93 H279 V150 M144 107 H279 M144 121 H279 M144 135 H279"/><path d="M7 153 H331"/></g><g stroke-width="1.8"><rect x="89" y="49" width="29" height="28"/><path d="M170 72v9 m0 0q-9 5-9 7h18q0-2-9-7 M252 72v9 m0 0q-9 5-9 7h18q0-2-9-7"/></g>'+end;
- return start+'<g stroke-width="2.5"><path d="M25 152 V22 H124 M25 46 H117 M111 22 V52 M111 52 H326 V151 H111 Z"/><path d="M111 61 Q218 8 326 61"/><path d="M139 151 V79 Q218 42 298 79 V151 M139 103 H298 M139 123 H298"/><path d="M7 153 H333"/><circle cx="67" cy="54" r="18"/><path d="M49 54h36 M67 36v36"/><path d="M120 58 Q149 37 185 45 M190 47 Q230 28 266 46 M270 46 Q298 37 317 53" stroke-dasharray="5 5" opacity=".65"/></g>'+end;
+ const begin='<svg class="gate-art" viewBox="0 0 500 240" role="img" aria-label="Fotó alapján készült sematikus kapurajz" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">';
+ const finish='</g></svg>';
+ const path=(d,w=1.7)=>'<path d="'+d+'" stroke-width="'+w+'"/>';
+ const bricks=(x,y,w,h,step=11)=>{let o='';for(let yy=y+step;yy<y+h;yy+=step){o+=path('M'+x+' '+yy+'h'+w,.8);for(let xx=x+(Math.round((yy-y)/step)%2?10:1);xx<x+w-2;xx+=20)o+=path('M'+xx+' '+(yy-step)+'v'+step,.65);}return o;};
+ const shrub=(x,y,k=1)=>{let d='M'+(x-30*k)+' '+y+'q'+(-9*k)+' '+(-13*k)+' '+(4*k)+' '+(-22*k)+'q'+(-3*k)+' '+(-19*k)+' '+(14*k)+' '+(-17*k)+'q'+(8*k)+' '+(-22*k)+' '+(23*k)+' '+(-9*k)+'q'+(21*k)+' '+(-7*k)+' '+(14*k)+' '+(14*k)+'q'+(22*k)+' '+(15*k)+' '+(-4*k)+' '+(21*k)+'Z';return path(d,1.3);};
+ const light=(x,y)=>path('M'+x+' '+(y-14)+'v8m-11 17q3-13 11-13q8 0 11 13Z M'+(x-15)+' '+(y+12)+'h30',1.5);
+ if(i===0){
+  let o=path('M4 228h492',2)+path('M25 227V57h62v170M415 227V57h61v170',2.8);
+  o+=bricks(25,57,62,170)+bricks(415,57,61,170);
+  o+=path('M20 55h71v-10H20Z M411 55h70v-10h-70Z',2.6);
+  o+=path('M89 227V110Q169 74 250 76Q327 76 413 110V227Z M251 78v149 M90 189h322 M90 209h322',2.7);
+  for(let j=0;j<32;j++){let x=97+j*10;let y=111-35*Math.sin((x-90)/323*Math.PI);o+=path('M'+x+' '+y.toFixed(1)+'v78',1.4)+path('M'+(x-3)+' '+y.toFixed(1)+'l3 -12l3 12',1);}
+  o+=path('M173 206q12-14 23 0q-9 17-23 0 M302 206q12-14 23 0q-9 17-23 0',1.1);
+  o+=path('M37 109h19v30H37Z M43 116h7v7h-7Z M43 127h7v7h-7Z',1.5);
+  o+=shrub(18,226,.55)+shrub(484,226,.54);
+  return begin+o+finish;
+ }
+ if(i===2){
+  let o=path('M6 228h488',2)+path('M32 226V42h434v184',2.7)+path('M24 43H474l-12-14H35Z M26 30H474',2.2);
+  for(let x=48;x<467;x+=42)o+=path('M'+x+' 42v24l9 5v-24',1.1);
+  o+=path('M73 226V89h356v137 M86 226V106h330v120 M86 132h330 M86 157h330 M86 182h330 M86 207h330',2);
+  o+=light(172,74)+light(324,74);
+  o+=shrub(20,227,.7)+shrub(475,227,.65);
+  return begin+o+finish;
+ }
+ if(i===1){
+  let o=path('M5 230h490',2)+path('M87 229V25L463 56V229 M75 22L468 55 M86 34L462 67',2.5);
+  for(let x=100;x<462;x+=43)o+=path('M'+x+' '+(27+(x-86)*.08).toFixed(1)+'v12l11 5v-13',1);
+  o+=path('M120 229V145h65v84 M128 229v-76h49v76 M220 229V146h201v83 M222 165h197 M222 186h197 M222 207h197',2.4);
+  o+=path('M144 226l33-38 M135 187l40 39 M146 163l20 13',1.1);
+  o+=path('M138 95h50v49h-50Z M145 101h36v36h-36Z M159 101v36',1.6);
+  o+=light(278,127)+light(379,127);
+  o+=path('M55 229V206h31 M88 229v-23',1.1)+shrub(65,230,.7);
+  return begin+o+finish;
+ }
+ let o=path('M6 229h490',2);
+ o+=path('M40 230V33h164 M40 60h160 M202 33V230',2.5)+bricks(40,60,160,170,12);
+ o+=path('M203 57L476 101 M205 49L481 94 M193 29L480 84',2.4);
+ for(let x=226;x<465;x+=35)o+=path('M'+x+' '+(51+(x-202)*.17).toFixed(1)+'l-4 11',1);
+ o+=path('M198 107Q349 47 481 108',2.1);
+ o+=path('M216 228V171Q226 119 285 111H452V229 M238 228V173Q257 138 288 137H445V229',2.5);
+ o+=path('M238 171h207 M238 194h207 M238 213h207',1.45);
+ o+=path('M116 115a27 27 0 1 0 54 0a27 27 0 1 0-54 0 M121 115h44 M143 88v54',2);
+ o+=path('M61 170h94v49H61Z M72 177h72v35H72Z M72 211q21-32 41-5t31-5',1.3);
+ for(let j=0;j<35;j++){let x=223+(j*31)%237,y=139-(j*17)%70;o+=path('M'+x+' '+y+'q-7 -9 2 -10q8 -3 11 8q8 5 0 12q-9 4 -13-3',.9);}
+ o+=shrub(478,188,.55);
+ return begin+o+finish;
 }
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const css=`
-/* Otthon 1.0.5: approved 4-gate blueprint composition */
+/* Otthon 1.0.6: approved 4-gate blueprint composition */
 .root.gates-view{position:relative;background:radial-gradient(ellipse at 55% 0%,#102b49 0%,#061426 74%);border-radius:20px;min-height:min(100%,740px);padding:14px 18px 10px}
 .root.gates-view header{display:flex;align-items:center;margin:0;position:absolute;left:32px;top:24px;z-index:1}
 .root.gates-view header .brand{background:transparent;padding:0;color:#b5e9ff}
@@ -92,7 +133,7 @@ class OtthonCard extends HTMLElement{
  async arm(mode){const id=this.alarmId(),s=this.entity(id);const feature=mode==='home'?1:mode==='away'?2:0;if(!feature||!this.available(id)||!(Number(s.attributes?.supported_features)&feature))return;if(s.attributes?.code_arm_required===true||(s.attributes?.code_arm_required!==false&&s.attributes?.code_format)){this.more(id);return;}return this.service('alarm_control_panel',mode==='home'?'alarm_arm_home':'alarm_arm_away',{entity_id:id});}
 
 
- render(){if(!this.cfg)return;const pages=[['lights','Világítás','mdi:lightbulb-outline'],['alarm','Riasztó','mdi:shield-home-outline'],['gates','Kapuk','mdi:gate']];this.shadowRoot.innerHTML=`<style>${css}</style><div class="root ${this.page==='gates'?'gates-view':''}"><header><span class="brand">${this.icon('mdi:home-outline')}</span><div><h1>Otthon</h1><small>Világítás · Kapuk · Biztonság</small></div></header><nav aria-label="Otthon oldalak">${pages.map(([id,name,icon])=>`<button data-page="${id}" aria-selected="${this.page===id}">${this.icon(icon)}${name}</button>`).join('')}</nav><main>${this.page==='lights'?this.lightsPage():this.page==='gates'?this.gatesPage():this.alarmPage()}</main><p class="notice" role="status">${esc(this.message)}</p><footer>Otthon 1.0.5</footer></div>`;
+ render(){if(!this.cfg)return;const pages=[['lights','Világítás','mdi:lightbulb-outline'],['alarm','Riasztó','mdi:shield-home-outline'],['gates','Kapuk','mdi:gate']];this.shadowRoot.innerHTML=`<style>${css}</style><div class="root ${this.page==='gates'?'gates-view':''}"><header><span class="brand">${this.icon('mdi:home-outline')}</span><div><h1>Otthon</h1><small>Világítás · Kapuk · Biztonság</small></div></header><nav aria-label="Otthon oldalak">${pages.map(([id,name,icon])=>`<button data-page="${id}" aria-selected="${this.page===id}">${this.icon(icon)}${name}</button>`).join('')}</nav><main>${this.page==='lights'?this.lightsPage():this.page==='gates'?this.gatesPage():this.alarmPage()}</main><p class="notice" role="status">${esc(this.message)}</p><footer>Otthon 1.0.6</footer></div>`;
  this.shadowRoot.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{this.page=b.dataset.page;this.message='';this.render();});
  this.shadowRoot.querySelectorAll('[data-zone]').forEach(b=>b.onclick=()=>{this.zone=b.dataset.zone;this.render();});
  this.shadowRoot.querySelectorAll('[data-light]').forEach(b=>b.onclick=()=>this.toggleLight(+b.dataset.light));
