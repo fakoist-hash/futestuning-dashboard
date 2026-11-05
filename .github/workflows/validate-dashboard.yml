@@ -20,7 +20,8 @@ jobs:
           p=pathlib.Path('.')
           h=json.loads((p/'hacs.json').read_text())
           assert h['filename']=='futestuning-dashboard.js'
-          assert (p/'dist/futestuning-dashboard.js').read_bytes()==(p/'dist/futestuning-card.js').read_bytes()
+          expected=(p/'dist/futestuning-card.js').read_bytes()+b'\n;'+(p/'dist/otthon-card.js').read_bytes()
+          assert (p/'dist/futestuning-dashboard.js').read_bytes()==expected
           assert (p/'examples/dashboard.yaml').is_file()
           PY
       - name: Check display-only template sensors

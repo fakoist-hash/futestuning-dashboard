@@ -97,7 +97,7 @@ await p.evaluate(()=>{document.body.style.paddingTop='0';document.body.style.pad
 await p.setViewportSize({width:1180,height:900});await p.evaluate(()=>{c.setConfig({view:'home'});c.hass=h});await p.getByRole('button',{name:'Pince célhőmérséklet'}).click();await p.locator('#plus').click();await p.getByRole('button',{name:'Mentés',exact:true}).click();assert.deepEqual(await p.evaluate(()=>calls.pop()),['number','set_value',{entity_id:'number.wifi_rs_futeskor_1_szelep_beallitott_hom',value:51}]);await p.getByRole('button',{name:'Megnyitás ›'}).click();assert(p.url().endsWith('/futes/kazanhaz'));
 await p.evaluate(()=>{c.setConfig({view:'rooms'});c.hass=h});await p.locator('[data-room="Gréta háló"]').click();await p.locator('[data-preset="eco"]').click();assert.equal((await p.evaluate(()=>calls.pop()))[1],'set_preset_mode');await p.getByRole('button',{name:'Célhőmérséklet növelése',exact:true}).click();assert.equal((await p.evaluate(()=>calls.pop()))[2].temperature,22.5);
 await p.locator('[data-close-room]').first().click();await p.locator('[data-room="Nappali / konyha / étkező"]').click();await p.getByRole('button',{name:'Kikapcsolás',exact:true}).click();assert.equal((await p.evaluate(()=>calls.pop()))[2].hvac_mode,'off');await p.getByLabel('Klíma üzemmód').selectOption('heat');assert.equal((await p.evaluate(()=>calls.pop()))[2].hvac_mode,'heat');await p.getByLabel('Klíma ventilátor').selectOption('high');assert.equal((await p.evaluate(()=>calls.pop()))[2].fan_mode,'high');
-await p.evaluate(async()=>{const before=calls.length;await c.service('switch','turn_on',{entity_id:DATA.circuits[0][3]});if(calls.length!==before)throw Error('Pump command escaped guard');h.states[DATA.buffer].state='unknown';if(c.pump(1).state!==null)throw Error('Unknown buffer');h.states[DATA.buffer].state='30';if(c.pump(1).state!==true)throw Error('30 degree boundary');h.states[DATA.buffer].state='30.1';if(c.pump(1).state!==true)throw Error('30.1 degree boundary');});await p.evaluate(()=>{const r=DATA.rooms[0],id=c.roomClimates(r)[0];h.states[id].attributes.preset_modes=[];c.selectedRoom=r[1];c.setConfig({view:'rooms'});c.hass=h;if([...c.shadowRoot.querySelectorAll('[data-preset]')].some(b=>!b.disabled))throw Error('Unsupported preset enabled');});await p.evaluate(()=>{const rooms=DATA.rooms.filter(r=>SHARED_RADIATOR_ROOMS.has(r[1])&&!c.isLivingRoom(r));if(rooms.length!==2)throw Error('Expected two radiator-only shared rooms');const sw=DATA.circuits[2][3];h.states[sw].state='on';for(const [temp,expected] of [['34.9',false],['35',true],['35.1',true],['unknown',null]]){h.states[DATA.buffer].state=temp;for(const r of rooms)if(c.pump(2).state!==expected)throw Error('Shared room threshold '+temp)}h.states[sw].state='off';h.states[DATA.buffer].state='50';for(const r of rooms)if(c.roomDemand(r)!==false)throw Error('No demand');c.cfg.pump_feedback_entities={3:'binary_sensor.test_radiator_pump'};h.states[sw].state='on';h.states['binary_sensor.test_radiator_pump']={state:'on'};h.states[DATA.buffer].state='20';for(const r of rooms)if(c.roomHeating(r)!==true)throw Error('TECH feedback must override estimate');h.states['binary_sensor.test_radiator_pump'].state='off';for(const r of rooms)if(c.roomHeating(r)!==false)throw Error('TECH off');delete c.cfg.pump_feedback_entities;});const downloadPromise=p.waitForEvent('download');await p.getByRole('button',{name:'Diagnosztika letöltése'}).click();const download=await downloadPromise;await download.saveAs('test-results/diagnostic-test.json');const diag=JSON.parse(fs.readFileSync('test-results/diagnostic-test.json','utf8'));assert.equal(diag.version,'0.6.14');assert(diag.entities['climate.greta_radiator_sonoff_1002c87029']);assert(!JSON.stringify(diag).includes('access_token'));await p.evaluate(()=>{const id=DATA.rooms[0][3];h.states[id].state='auto';h.states[id].attributes.hvac_modes=['heat','auto','off'];h.states[id].attributes.preset_modes=[];c.selectedRoom=DATA.rooms[0][1];c.roomDialogOpen=true;c.render();if(c.canAdjust(id))throw Error('Scheduled TRV must not silently accept manual adjustment');});await p.locator('[data-room-mode=heat]').click();assert.equal((await p.evaluate(()=>calls.pop()))[2].hvac_mode,'heat');
+await p.evaluate(async()=>{const before=calls.length;await c.service('switch','turn_on',{entity_id:DATA.circuits[0][3]});if(calls.length!==before)throw Error('Pump command escaped guard');h.states[DATA.buffer].state='unknown';if(c.pump(1).state!==null)throw Error('Unknown buffer');h.states[DATA.buffer].state='30';if(c.pump(1).state!==true)throw Error('30 degree boundary');h.states[DATA.buffer].state='30.1';if(c.pump(1).state!==true)throw Error('30.1 degree boundary');});await p.evaluate(()=>{const r=DATA.rooms[0],id=c.roomClimates(r)[0];h.states[id].attributes.preset_modes=[];c.selectedRoom=r[1];c.setConfig({view:'rooms'});c.hass=h;if([...c.shadowRoot.querySelectorAll('[data-preset]')].some(b=>!b.disabled))throw Error('Unsupported preset enabled');});await p.evaluate(()=>{const rooms=DATA.rooms.filter(r=>SHARED_RADIATOR_ROOMS.has(r[1])&&!c.isLivingRoom(r));if(rooms.length!==2)throw Error('Expected two radiator-only shared rooms');const sw=DATA.circuits[2][3];h.states[sw].state='on';for(const [temp,expected] of [['34.9',false],['35',true],['35.1',true],['unknown',null]]){h.states[DATA.buffer].state=temp;for(const r of rooms)if(c.pump(2).state!==expected)throw Error('Shared room threshold '+temp)}h.states[sw].state='off';h.states[DATA.buffer].state='50';for(const r of rooms)if(c.roomDemand(r)!==false)throw Error('No demand');c.cfg.pump_feedback_entities={3:'binary_sensor.test_radiator_pump'};h.states[sw].state='on';h.states['binary_sensor.test_radiator_pump']={state:'on'};h.states[DATA.buffer].state='20';for(const r of rooms)if(c.roomHeating(r)!==true)throw Error('TECH feedback must override estimate');h.states['binary_sensor.test_radiator_pump'].state='off';for(const r of rooms)if(c.roomHeating(r)!==false)throw Error('TECH off');delete c.cfg.pump_feedback_entities;});const downloadPromise=p.waitForEvent('download');await p.getByRole('button',{name:'Diagnosztika letöltése'}).click();const download=await downloadPromise;await download.saveAs('test-results/diagnostic-test.json');const diag=JSON.parse(fs.readFileSync('test-results/diagnostic-test.json','utf8'));assert.equal(diag.version,'0.6.15');assert(diag.entities['climate.greta_radiator_sonoff_1002c87029']);assert(!JSON.stringify(diag).includes('access_token'));await p.evaluate(()=>{const id=DATA.rooms[0][3];h.states[id].state='auto';h.states[id].attributes.hvac_modes=['heat','auto','off'];h.states[id].attributes.preset_modes=[];c.selectedRoom=DATA.rooms[0][1];c.roomDialogOpen=true;c.render();if(c.canAdjust(id))throw Error('Scheduled TRV must not silently accept manual adjustment');});await p.locator('[data-room-mode=heat]').click();assert.equal((await p.evaluate(()=>calls.pop()))[2].hvac_mode,'heat');
 await p.evaluate(()=>{c.closeRoom();const id=DATA.rooms[0][3];h.states[id].state='heat';c.hass=h});
 for(const [width,height] of [[1024,768],[1112,834],[1180,820],[768,768]]){
  await p.setViewportSize({width,height});
@@ -108,15 +108,50 @@ for(const [width,height] of [[1024,768],[1112,834],[1180,820],[768,768]]){
  assert(layout.bottom<=height,'iPad overview exceeds viewport '+width);assert.deepEqual(layout.overflow,[],'iPad tile overflow '+width);assert(layout.touch);
  await p.screenshot({path:`test-results/rooms-ipad-${width}.png`});
 }
-await p.evaluate(()=>{document.body.style.paddingTop='0';calls.length=0;c.render()});
-await p.getByRole('button',{name:'Gréta háló célérték növelése',exact:true}).click();
-assert.equal(await p.locator('[role=dialog]').count(),0,'tile step must not open dialog');
-assert.deepEqual(await p.evaluate(()=>calls.pop()),['climate','set_temperature',{entity_id:'climate.greta_radiator_sonoff_1002c87029',temperature:22.5}]);
-assert(await p.getByRole('button',{name:'Emeleti fürdő célérték növelése',exact:true}).isDisabled());
+await p.evaluate(()=>{document.body.style.paddingTop='0';calls.length=0;for(const [id,request] of c.temperatureRequests||[])c.clearTemperatureRequest(id,request);c.render()});
+// Exercise the room tile for all ten mappings, including rooms without a thermostat.
+for(const [name,ids] of await p.evaluate(()=>DATA.rooms.map(r=>[r[1],c.roomControlIds(r)]))){
+ const plus=p.getByRole('button',{name:name+' célérték növelése',exact:true});
+ const minus=p.getByRole('button',{name:name+' célérték csökkentése',exact:true});
+ if(!ids.length){assert(await plus.isDisabled());assert(await minus.isDisabled());continue}
+ await p.evaluate(ids=>{calls.length=0;for(const id of ids){h.states[id].state='heat';h.states[id].attributes.temperature=22}c.hass=h},ids);
+ await plus.click();
+ await p.waitForFunction(n=>calls.length===n,ids.length);
+ assert.deepEqual(await p.evaluate(()=>calls.splice(0)),ids.map(id=>['climate','set_temperature',{entity_id:id,temperature:22.5}]));
+ await minus.click();
+ await p.waitForFunction(n=>calls.length===n,ids.length);
+ assert.deepEqual(await p.evaluate(()=>calls.splice(0)),ids.map(id=>['climate','set_temperature',{entity_id:id,temperature:22}]));
+ assert.equal(await p.locator('[role=dialog]').count(),0);
+}
+const flora=await p.evaluate(()=>ROOM_EXTRAS['Flóra háló'].climates);
+await p.evaluate(([first,second])=>{
+ h.states[first].attributes.temperature=22;h.states[second].state='auto';c.hass=h;
+},flora);
+await p.locator('[data-room="Flóra háló"]').click();
+assert(await p.getByRole('button',{name:'Radiátor 2 célérték növelése'}).isDisabled());
+await p.getByRole('button',{name:'Célhőmérséklet növelése',exact:true}).click();
+await p.waitForFunction(()=>calls.length===1);
+assert.deepEqual(await p.evaluate(()=>calls.splice(0)),[['climate','set_temperature',{entity_id:flora[0],temperature:22.5}]]);
+await p.getByRole('button',{name:'Radiátor 1 célérték növelése'}).click();
+await p.waitForFunction(()=>calls.length===1);
+assert.deepEqual(await p.evaluate(()=>calls.splice(0)),[['climate','set_temperature',{entity_id:flora[0],temperature:23}]]);
+assert.match(await p.getByRole('dialog').locator('.setpoint').innerText(),/23,0/);
+await p.keyboard.press('Escape');
+const garage=await p.evaluate(()=>ROOM_EXTRAS['Garázs'].climates);
+await p.evaluate(([first,second])=>{h.states[first].attributes.temperature=22;h.states[second].state='unavailable';c.hass=h},garage);
+await p.getByRole('button',{name:'Garázs célérték növelése',exact:true}).click();
+await p.waitForFunction(()=>calls.length===1);
+assert.deepEqual(await p.evaluate(()=>calls.splice(0)),[['climate','set_temperature',{entity_id:garage[0],temperature:22.5}]]);
+await p.evaluate(([first,second])=>{
+ for(const id of [first,second]){h.states[id].state='heat';h.states[id].attributes.temperature=22}
+ c.hass=h;
+ window.normalService=h.callService;
+ h.callService=async (...args)=>{if(args[2].entity_id===first)throw Error('fixture failed');return normalService(...args)};
+},flora);
 await p.getByRole('button',{name:'Flóra háló célérték növelése',exact:true}).click();
-assert.equal((await p.evaluate(()=>calls.splice(0))).length,2,'group control updates both valves');
-await p.evaluate(()=>{h.states[ROOM_EXTRAS['Garázs'].climates[1]].state='unavailable';c.hass=h});
-assert(await p.getByRole('button',{name:'Garázs célérték növelése',exact:true}).isDisabled(),'missing valve disables group');
+await p.waitForFunction(()=>calls.length===1&&c.error.includes('sikertelen'));
+assert.equal((await p.evaluate(()=>calls.pop()))[2].entity_id,flora[1]);
+await p.evaluate(()=>{h.callService=normalService;c.error='';c.render()});
 await p.locator('[data-room="Gréta háló"]').click();
 assert.equal(await p.locator('[role=dialog]').count(),1);await p.screenshot({path:'test-results/rooms-detail-ipad.png'});await p.evaluate(()=>{c.hass=h;if(!c.shadowRoot.activeElement?.hasAttribute('data-close-room'))throw Error('Modal focus lost during HA refresh')});await p.keyboard.press('Escape');assert.equal(await p.locator('[role=dialog]').count(),0);
 await p.evaluate(()=>{h.states[DATA.circuits[2][3]].state='on';h.states[DATA.buffer].state='35';h.states[DATA.rooms[4][3]].attributes.hvac_action='idle';c.hass=h;if(c.roomAppearance(DATA.rooms[1])!=='heating'||c.roomAppearance(DATA.rooms[0])!=='heating'||c.roomAppearance(DATA.rooms[4])!=='idle')throw Error('State colors must differ')});

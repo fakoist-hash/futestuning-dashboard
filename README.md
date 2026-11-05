@@ -1,4 +1,4 @@
-# Fűtéstuning Dashboard · 0.6.14
+# Fűtéstuning Dashboard · 0.6.15
 
 Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
 
@@ -8,7 +8,7 @@ Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez 
 
 ## Telepítés és frissítés
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.14 látszik.
+HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.15 látszik.
 
 A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
 
@@ -36,7 +36,7 @@ A teljes áttekintés tíz nagy csempét mutat emelet/földszint/pince bontásba
 
 Szürke: nincs hőigény. Piros: hőigény és igazolt működési visszajelzés. Zöld: hőigény, de álló vagy nem igazolt szivattyú. Adathiány: külön „Nincs adat” felirat és szaggatott keret. A teljes csempe háttere változik.
 
-A csempe alatti −/+ közvetlen célértékparancsot küld. Két radiátornál mindkét szelep saját célértékét lépteti; ez két külön HA-parancs, nem atomi művelet. Csak akkor aktív, ha minden hozzárendelt szelep elérhető és kézi módban állítható. Hiányzó szelep, saját termosztát hiánya vagy időprogram/Eco esetén inaktív. Módot a részletes ablakban lehet váltani. A Gree vezérlés szintén ott marad.
+A csempén és a részletes ablakban a közös −/+ az elérhető, kézi módban állítható radiátorokat lépteti, mindegyiket a saját célértékétől. Két radiátornál a részletes ablakban külön gomb is van mindkettőhöz. Az időprogramos vagy Eco módban lévő radiátorhoz ott választható kézi mód. A kért célérték rögtön megjelenik, a visszajelzés elmaradását a dashboard jelzi. A klíma külön panelen állítható.
 
 A böngészős teszt a csempék és az érintési területek méretét, az iPad teljes magasságát, a modal nyitását/bezárását és a két szelepes parancsokat is ellenőrzi.
 
