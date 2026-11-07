@@ -156,7 +156,7 @@ class FutestuningCard extends HTMLElement{
    const index=(date.getDay()+6)%7;
    for(const item of (days[index]||'').split(';')){
     const p=item.split(',');
-    if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(p[0]||'')||!['heat','cool','auto','off'].includes(p[1]))continue;
+    if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(p[0]||'')||!['heat','cool','auto','off'].includes(p[1]))continue;
     const [hour,minute]=p[0].split(':').map(Number);
     date.setHours(hour,minute,0,0);
     if(date>now)items.push({date:new Date(date),mode:p[1],temp:p[2]});
@@ -194,7 +194,7 @@ class FutestuningCard extends HTMLElement{
    const fail=msg=>holder.querySelector('#weekly-error').textContent=msg;
    const val=i=>key=>holder.querySelector('[data-weekly-'+key+'="'+i+'"]').value;
    const days=[];
-   const time=/^([01]\\d|2[0-3]):[0-5]\\d$/;
+   const time=/^([01]\d|2[0-3]):[0-5]\d$/;
    for(let i=0;i<7;i++){
     if(!holder.querySelector('[data-weekly-day="'+i+'"]').checked){days.push('');continue}
     const get=val(i),from=get('from'),to=get('to'),mode=get('mode'),temperature=Number(get('temp'));
