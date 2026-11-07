@@ -207,8 +207,8 @@ class FutestuningCard extends HTMLElement{
    const save=holder.querySelector('[data-save-weekly]'),enabled=holder.querySelector('#weekly-master').checked;
    save.disabled=true;fail('');
    try{
-    await this.service('input_text','set_value',{entity_id:textId,value:result});
-    await this.service('input_boolean',enabled?'turn_on':'turn_off',{entity_id:enableId});
+    await this._hass.callService('input_text','set_value',{entity_id:textId,value:result});
+    await this._hass.callService('input_boolean',enabled?'turn_on':'turn_off',{entity_id:enableId});
     close();this.render();
    }catch(e){save.disabled=false;fail('Mentési hiba: a Home Assistant nem fogadta el a módosítást.')}
   };
