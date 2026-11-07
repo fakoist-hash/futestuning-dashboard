@@ -1,0 +1,222 @@
+# Fűtéstuning – heti Gree-klímaprogram (v1)
+# Kezdetben minden időprogram KIKAPCSOLT. Nincs véletlen klímaindítás.
+# A dashboard napi egy bekapcsolási és egy kikapcsolási időpontot szerkeszt.
+# Hétfő–vasárnap | elválasztóval, napon belül idő,mód,hőfok;idő,off.
+# A segédek értéke HA-újraindítás után megmarad (nincs initial: mező).
+input_boolean:
+  gree_weekly_greta_enabled:
+    name: "Gréta klíma – heti időprogram"
+    icon: mdi:calendar-clock
+  gree_weekly_flora_enabled:
+    name: "Flóra klíma – heti időprogram"
+    icon: mdi:calendar-clock
+  gree_weekly_szuloi_enabled:
+    name: "Szülői háló klíma – heti időprogram"
+    icon: mdi:calendar-clock
+  gree_weekly_nappali_enabled:
+    name: "Nappali klíma – heti időprogram"
+    icon: mdi:calendar-clock
+
+input_text:
+  gree_weekly_greta:
+    name: "Gréta klíma – heti időrend"
+    max: 255
+    icon: mdi:calendar-week
+  gree_weekly_flora:
+    name: "Flóra klíma – heti időrend"
+    max: 255
+    icon: mdi:calendar-week
+  gree_weekly_szuloi:
+    name: "Szülői háló klíma – heti időrend"
+    max: 255
+    icon: mdi:calendar-week
+  gree_weekly_nappali:
+    name: "Nappali klíma – heti időrend"
+    max: 255
+    icon: mdi:calendar-week
+
+automation:
+  - id: futestuning_gree_weekly_greta
+    alias: "Fűtéstuning · Gréta klíma heti időprogram"
+    description: "Az engedélyezett program megfelelő percében Gree klímaparancs. Nem módosít más fűtési köröket."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/1"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.gree_weekly_greta_enabled
+        state: "on"
+    actions:
+      - variables:
+          command: >-
+            {% set days = states('input_text.gree_weekly_greta').split('|') %}
+            {% set today = now().weekday() %}
+            {% set slots = days[today] if days|length > today else '' %}
+            {% set ns = namespace(command='') %}
+            {% for item in slots.split(';') %}
+              {% set fields = item.split(',') %}
+              {% if fields|length >= 2 and fields[0] == now().strftime('%H:%M') %}
+                {% set ns.command = item %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.command }}
+      - condition: template
+        value_template: "{{ command|trim != '' and states('climate.502cc6c37c75') not in ['unknown','unavailable'] }}"
+      - variables:
+          selected_mode: "{{ command.split(',')[1] }}"
+      - condition: template
+        value_template: "{{ selected_mode in (state_attr('climate.502cc6c37c75', 'hvac_modes') or []) }}"
+      - action: climate.set_hvac_mode
+        target:
+          entity_id: climate.502cc6c37c75
+        data:
+          hvac_mode: "{{ selected_mode }}"
+      - if:
+          - condition: template
+            value_template: "{{ selected_mode in ['heat', 'cool', 'auto'] and command.split(',')|length >= 3 }}"
+        then:
+          - action: climate.set_temperature
+            target:
+              entity_id: climate.502cc6c37c75
+            data:
+              temperature: "{{ command.split(',')[2] | float }}"
+
+  - id: futestuning_gree_weekly_flora
+    alias: "Fűtéstuning · Flóra klíma heti időprogram"
+    description: "Az engedélyezett program megfelelő percében Gree klímaparancs. Nem módosít más fűtési köröket."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/1"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.gree_weekly_flora_enabled
+        state: "on"
+    actions:
+      - variables:
+          command: >-
+            {% set days = states('input_text.gree_weekly_flora').split('|') %}
+            {% set today = now().weekday() %}
+            {% set slots = days[today] if days|length > today else '' %}
+            {% set ns = namespace(command='') %}
+            {% for item in slots.split(';') %}
+              {% set fields = item.split(',') %}
+              {% if fields|length >= 2 and fields[0] == now().strftime('%H:%M') %}
+                {% set ns.command = item %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.command }}
+      - condition: template
+        value_template: "{{ command|trim != '' and states('climate.c6a66343') not in ['unknown','unavailable'] }}"
+      - variables:
+          selected_mode: "{{ command.split(',')[1] }}"
+      - condition: template
+        value_template: "{{ selected_mode in (state_attr('climate.c6a66343', 'hvac_modes') or []) }}"
+      - action: climate.set_hvac_mode
+        target:
+          entity_id: climate.c6a66343
+        data:
+          hvac_mode: "{{ selected_mode }}"
+      - if:
+          - condition: template
+            value_template: "{{ selected_mode in ['heat', 'cool', 'auto'] and command.split(',')|length >= 3 }}"
+        then:
+          - action: climate.set_temperature
+            target:
+              entity_id: climate.c6a66343
+            data:
+              temperature: "{{ command.split(',')[2] | float }}"
+
+  - id: futestuning_gree_weekly_szuloi
+    alias: "Fűtéstuning · Szülői háló klíma heti időprogram"
+    description: "Az engedélyezett program megfelelő percében Gree klímaparancs. Nem módosít más fűtési köröket."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/1"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.gree_weekly_szuloi_enabled
+        state: "on"
+    actions:
+      - variables:
+          command: >-
+            {% set days = states('input_text.gree_weekly_szuloi').split('|') %}
+            {% set today = now().weekday() %}
+            {% set slots = days[today] if days|length > today else '' %}
+            {% set ns = namespace(command='') %}
+            {% for item in slots.split(';') %}
+              {% set fields = item.split(',') %}
+              {% if fields|length >= 2 and fields[0] == now().strftime('%H:%M') %}
+                {% set ns.command = item %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.command }}
+      - condition: template
+        value_template: "{{ command|trim != '' and states('climate.c6a643cb') not in ['unknown','unavailable'] }}"
+      - variables:
+          selected_mode: "{{ command.split(',')[1] }}"
+      - condition: template
+        value_template: "{{ selected_mode in (state_attr('climate.c6a643cb', 'hvac_modes') or []) }}"
+      - action: climate.set_hvac_mode
+        target:
+          entity_id: climate.c6a643cb
+        data:
+          hvac_mode: "{{ selected_mode }}"
+      - if:
+          - condition: template
+            value_template: "{{ selected_mode in ['heat', 'cool', 'auto'] and command.split(',')|length >= 3 }}"
+        then:
+          - action: climate.set_temperature
+            target:
+              entity_id: climate.c6a643cb
+            data:
+              temperature: "{{ command.split(',')[2] | float }}"
+
+  - id: futestuning_gree_weekly_nappali
+    alias: "Fűtéstuning · Nappali klíma heti időprogram"
+    description: "Az engedélyezett program megfelelő percében Gree klímaparancs. Nem módosít más fűtési köröket."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/1"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.gree_weekly_nappali_enabled
+        state: "on"
+    actions:
+      - variables:
+          command: >-
+            {% set days = states('input_text.gree_weekly_nappali').split('|') %}
+            {% set today = now().weekday() %}
+            {% set slots = days[today] if days|length > today else '' %}
+            {% set ns = namespace(command='') %}
+            {% for item in slots.split(';') %}
+              {% set fields = item.split(',') %}
+              {% if fields|length >= 2 and fields[0] == now().strftime('%H:%M') %}
+                {% set ns.command = item %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.command }}
+      - condition: template
+        value_template: "{{ command|trim != '' and states('climate.a0cd3dc6') not in ['unknown','unavailable'] }}"
+      - variables:
+          selected_mode: "{{ command.split(',')[1] }}"
+      - condition: template
+        value_template: "{{ selected_mode in (state_attr('climate.a0cd3dc6', 'hvac_modes') or []) }}"
+      - action: climate.set_hvac_mode
+        target:
+          entity_id: climate.a0cd3dc6
+        data:
+          hvac_mode: "{{ selected_mode }}"
+      - if:
+          - condition: template
+            value_template: "{{ selected_mode in ['heat', 'cool', 'auto'] and command.split(',')|length >= 3 }}"
+        then:
+          - action: climate.set_temperature
+            target:
+              entity_id: climate.a0cd3dc6
+            data:
+              temperature: "{{ command.split(',')[2] | float }}"
+
