@@ -64,7 +64,7 @@ automation:
       - condition: template
         value_template: "{{ command|trim != '' and states('climate.502cc6c37c75') not in ['unknown','unavailable'] }}"
       - variables:
-          selected_mode: "{{ command.split(',')[1] }}"
+          selected_mode: "{{ command.split(',')[1] | trim }}"
       - condition: template
         value_template: "{{ selected_mode in (state_attr('climate.502cc6c37c75', 'hvac_modes') or []) }}"
       - action: climate.set_hvac_mode
@@ -110,7 +110,7 @@ automation:
       - condition: template
         value_template: "{{ command|trim != '' and states('climate.c6a66343') not in ['unknown','unavailable'] }}"
       - variables:
-          selected_mode: "{{ command.split(',')[1] }}"
+          selected_mode: "{{ command.split(',')[1] | trim }}"
       - condition: template
         value_template: "{{ selected_mode in (state_attr('climate.c6a66343', 'hvac_modes') or []) }}"
       - action: climate.set_hvac_mode
@@ -156,7 +156,7 @@ automation:
       - condition: template
         value_template: "{{ command|trim != '' and states('climate.c6a643cb') not in ['unknown','unavailable'] }}"
       - variables:
-          selected_mode: "{{ command.split(',')[1] }}"
+          selected_mode: "{{ command.split(',')[1] | trim }}"
       - condition: template
         value_template: "{{ selected_mode in (state_attr('climate.c6a643cb', 'hvac_modes') or []) }}"
       - action: climate.set_hvac_mode
@@ -202,7 +202,7 @@ automation:
       - condition: template
         value_template: "{{ command|trim != '' and states('climate.a0cd3dc6') not in ['unknown','unavailable'] }}"
       - variables:
-          selected_mode: "{{ command.split(',')[1] }}"
+          selected_mode: "{{ command.split(',')[1] | trim }}"
       - condition: template
         value_template: "{{ selected_mode in (state_attr('climate.a0cd3dc6', 'hvac_modes') or []) }}"
       - action: climate.set_hvac_mode
