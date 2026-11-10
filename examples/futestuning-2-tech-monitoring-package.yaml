@@ -1,0 +1,78 @@
+# Fűtéstuning 2.0 – csak megfigyelő TECH diagnosztika.
+# KIZÁRÓLAG a három fő TECH kör; hozzáépítés kizárva.
+# Nem kapcsol szivattyút, keverőszelepet vagy termosztátot.
+# A MINI-D állapota itt HŐIGÉNY-JEL, nem fizikai szivattyú visszajelzés.
+# Telepítés előtt mentés, entitásellenőrzés, packages beállítás ellenőrzése.
+template:
+  - binary_sensor:
+      - name: "Fűtéstuning TECH puffer mérés hiányzik"
+        unique_id: futestuning_tech_buffer_missing
+        default_entity_id: binary_sensor.futestuning_tech_buffer_missing
+        device_class: problem
+        state: >-
+          {% set e='sensor.elite_thr316d_sonoff_1002bdc9e4_temperature' %}
+          {{ not is_number(states(e))
+             or (is_number(states(e)) and
+                 (states(e)|float(-100) < -20 or states(e)|float(200) > 110)) }}
+        delay_on: "00:10:00"
+        delay_off: "00:02:00"
+      - name: "Fűtéstuning TECH padló hőigényjel hiányzik"
+        unique_id: futestuning_tech_floor_demand_missing
+        default_entity_id: binary_sensor.futestuning_tech_floor_demand_missing
+        device_class: problem
+        state: >-
+          {{ states('switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1')
+             not in ['on','off'] }}
+        delay_on: "00:10:00"
+        delay_off: "00:02:00"
+      - name: "Fűtéstuning TECH radiátor hőigényjel hiányzik"
+        unique_id: futestuning_tech_radiator_demand_missing
+        default_entity_id: binary_sensor.futestuning_tech_radiator_demand_missing
+        device_class: problem
+        state: >-
+          {{ states('switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1')
+             not in ['on','off'] }}
+        delay_on: "00:10:00"
+        delay_off: "00:02:00"
+      - name: "Fűtéstuning padló hőigény mellett hideg puffer"
+        unique_id: futestuning_floor_cold_buffer
+        default_entity_id: binary_sensor.futestuning_floor_cold_buffer
+        device_class: problem
+        availability: >-
+          {{ is_number(states('sensor.elite_thr316d_sonoff_1002bdc9e4_temperature'))
+             and states('switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1') in ['on','off'] }}
+        state: >-
+          {{ is_state('switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1','on')
+             and states('sensor.elite_thr316d_sonoff_1002bdc9e4_temperature')|float(999) < 30 }}
+        delay_on: "00:15:00"
+        delay_off: "00:02:00"
+      - name: "Fűtéstuning radiátor hőigény mellett hideg puffer"
+        unique_id: futestuning_radiator_cold_buffer
+        default_entity_id: binary_sensor.futestuning_radiator_cold_buffer
+        device_class: problem
+        availability: >-
+          {{ is_number(states('sensor.elite_thr316d_sonoff_1002bdc9e4_temperature'))
+             and states('switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1') in ['on','off'] }}
+        state: >-
+          {{ is_state('switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1','on')
+             and states('sensor.elite_thr316d_sonoff_1002bdc9e4_temperature')|float(999) < 35 }}
+        delay_on: "00:15:00"
+        delay_off: "00:02:00"
+# A history_stats a MINI-D kapcsolójelek időtartamát méri, nem a szivattyúk üzemidejét.
+sensor:
+  - platform: history_stats
+    name: "Fűtéstuning padló hőigény ideje ma"
+    unique_id: futestuning_floor_demand_time_today
+    entity_id: switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1
+    state: "on"
+    type: time
+    start: "{{ today_at('00:00') }}"
+    end: "{{ now() }}"
+  - platform: history_stats
+    name: "Fűtéstuning radiátor hőigény ideje ma"
+    unique_id: futestuning_radiator_demand_time_today
+    entity_id: switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1
+    state: "on"
+    type: time
+    start: "{{ today_at('00:00') }}"
+    end: "{{ now() }}"
