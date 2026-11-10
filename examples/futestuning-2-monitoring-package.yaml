@@ -1,0 +1,12 @@
+# Fűtéstuning 2.0 – corrected after physical wiring clarification.
+# DO NOT INSTALL as a pump monitoring package.
+#
+# Both known smart sockets power COMPUTHERM thermostats, NOT pumps.
+# Their W measurements CANNOT demonstrate circulation or pump runtime.
+# Pump run-time and start-count history_stats must not be generated from
+# the former binary_sensor.futestuning_szuloi_halo_fut and
+# binary_sensor.futestuning_hozzaepitett_garazs_fut states.
+#
+# This intentionally contains no HA entities/automations until a verified
+# measurement point on the actual pump feed(s) is identified.
+# No action is required in the live HA, which has not been modified.
