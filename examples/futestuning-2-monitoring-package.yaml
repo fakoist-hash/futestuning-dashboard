@@ -1,66 +1,12 @@
-# Fűtéstuning 2.0 - read-only diagnostics and usage statistics.
-# This package sends NO commands and creates NO alerts or notifications.
-# Prerequisite: examples/extension-heating-package.yaml is actually installed
-# and both binary_sensor entity_ids below are verified in the live HA.
+# Fűtéstuning 2.0 – corrected after physical wiring clarification.
+# DO NOT INSTALL as a pump monitoring package.
 #
-# Merge with the existing packages mechanism; never add a second root-level
-# template: / sensor: key to configuration.yaml.
-
-template:
-  - binary_sensor:
-      - name: "Fűtéstuning Szülői háló teljesítményadat hiányzik"
-        unique_id: futestuning_szuloi_power_data_missing
-        default_entity_id: binary_sensor.futestuning_szuloi_power_data_missing
-        device_class: problem
-        state: >-
-          {% set e = 'sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power' %}
-          {{ not is_number(states(e)) or
-             state_attr(e, 'unit_of_measurement') != 'W' or
-             (is_number(states(e)) and states(e) | float(-1) < 0) }}
-        delay_on: "00:10:00"
-        delay_off: "00:02:00"
-      - name: "Fűtéstuning Garázs teljesítményadat hiányzik"
-        unique_id: futestuning_garazs_power_data_missing
-        default_entity_id: binary_sensor.futestuning_garazs_power_data_missing
-        device_class: problem
-        state: >-
-          {% set e = 'sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power' %}
-          {{ not is_number(states(e)) or
-             state_attr(e, 'unit_of_measurement') != 'W' or
-             (is_number(states(e)) and states(e) | float(-1) < 0) }}
-        delay_on: "00:10:00"
-        delay_off: "00:02:00"
-
-sensor:
-  - platform: history_stats
-    name: "Fűtéstuning Szülői háló fűtési idő ma"
-    unique_id: futestuning_szuloi_heat_hours_today
-    entity_id: binary_sensor.futestuning_szuloi_halo_fut
-    state: "on"
-    type: time
-    start: "{{ today_at('00:00') }}"
-    end: "{{ now() }}"
-  - platform: history_stats
-    name: "Fűtéstuning Garázs fűtési idő ma"
-    unique_id: futestuning_garazs_heat_hours_today
-    entity_id: binary_sensor.futestuning_hozzaepitett_garazs_fut
-    state: "on"
-    type: time
-    start: "{{ today_at('00:00') }}"
-    end: "{{ now() }}"
-  - platform: history_stats
-    name: "Fűtéstuning Szülői háló indulások ma"
-    unique_id: futestuning_szuloi_heat_count_today
-    entity_id: binary_sensor.futestuning_szuloi_halo_fut
-    state: "on"
-    type: count
-    start: "{{ today_at('00:00') }}"
-    end: "{{ now() }}"
-  - platform: history_stats
-    name: "Fűtéstuning Garázs indulások ma"
-    unique_id: futestuning_garazs_heat_count_today
-    entity_id: binary_sensor.futestuning_hozzaepitett_garazs_fut
-    state: "on"
-    type: count
-    start: "{{ today_at('00:00') }}"
-    end: "{{ now() }}"
+# Both known smart sockets power COMPUTHERM thermostats, NOT pumps.
+# Their W measurements CANNOT demonstrate circulation or pump runtime.
+# Pump run-time and start-count history_stats must not be generated from
+# the former binary_sensor.futestuning_szuloi_halo_fut and
+# binary_sensor.futestuning_hozzaepitett_garazs_fut states.
+#
+# This intentionally contains no HA entities/automations until a verified
+# measurement point on the actual pump feed(s) is identified.
+# No action is required in the live HA, which has not been modified.
