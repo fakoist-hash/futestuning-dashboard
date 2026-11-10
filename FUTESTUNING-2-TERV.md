@@ -1,3 +1,19 @@
+# FONTOS HELYESBÍTÉS – 2026-11-10
+
+A két, korábban szivattyú-fogyasztásmérőként kezelt SONOFF konnektor a COMPUTHERM termosztátok tápját adja. A szivattyúk a felhasználó jelenlegi ismerete szerint közös, harmadik 230 V-os aljzatról kapnak betápot, és a COMPUTHERM termosztátok valószínűleg relét vezérelnek. Ezt kapcsolási felmérésnek kell igazolnia.
+
+**Következmények:** a két korábbi 10 W-os szivattyú-Fűt sablon állapota nem tekinthető tényleges szivattyúállapotnak. A Főoldal/Helyiségek/Kazánház ilyen kijelzéseit nem szabad igazolt fűtésnek nevezni. A tervben korábban szereplő napi üzemidő/start számlálók visszavonva; a monitoring package szándékosan üres. Az élő HA-ban nem történt változtatás.
+
+## Javasolt mérési helyek
+1. Ha a harmadik aljzat kizárólag a két szivattyút táplálja: egy fogyasztásmérős okosdugalj összesített szivattyúműködést ad, **körönkénti állapotot nem**; mindkét motor és az esetleges töltőszivattyú terhelését és indulóáramát ellenőrizni kell.
+2. Legjobb: két külön, közvetlen motortápon mért fogyasztási csatorna (körönként W). DIN-sínes, kétcsatornás CT mérővel is megoldható, de a kis teljesítményű motorok megbízható felismerési küszöbét próbával kell hitelesíteni. Áramváltó egy-egy fázisvezető körül, nem teljes kábel körül.
+3. Relé/termosztát állapotvisszajelzés kiegészítő adat lehet, de az önmagában csak fűtési parancs, nem bizonyít motoráramot.
+4. A hidraulikus váltó töltőszivattyú működését külön kell mérni, ha tényleges visszajelzést akarunk, nem pusztán két másik szivattyúból következtetni.
+
+230 V-os áramkörök átalakítását villanyszerelő végezze. A HA-ban maradjon csak kijelzés; a meglévő COMPUTHERM/TECH vezérlés változatlan.
+
+---
+
 # Fűtéstuning 2.0 – megvalósítási terv és ellenőrzési kapuk
 
 ## Biztonsági szabály
