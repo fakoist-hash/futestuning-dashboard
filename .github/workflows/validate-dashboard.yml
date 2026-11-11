@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 -m pip install PyYAML Jinja2
           python3 tests/extension-template.py
+          python3 tests/tech-monitoring.py
       - name: Install browser test tools
         run: |
           npm install --no-save playwright@1.56.1
