@@ -1,38 +1,46 @@
-# Fűtéstuning 2.0 – TECH megfigyelő modul
+# Fűtéstuning 2.0 – TECH fő fűtőkörök, passzív diagnosztika
 
-## Hatókör
-Csak pince, padlófűtés, radiátorkör és puffer. A hozzáépítés (Szülői háló, Lenti garázs és hidraulikusváltó-töltő) kizárva.
+## Állapot és hatókör
+Három fő TECH fűtőkör: pince (1), padló (2), radiátor (3).
+A szülői háló, hozzáépített garázs és hidraulikusváltó töltőszivattyúja nem része ennek a csomagnak.
 
-## A meglévő frontend-kódból azonosított források
-- Puffer: `sensor.elite_thr316d_sonoff_1002bdc9e4_temperature`
-- Padló MINI-D közvetlen jel: `switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1`
-- Radiátor MINI-D közvetlen jel: `switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1`
-- Pince: `switch.pince_szivattyu_mini_d` – **alias/állapotforrás még nem igazolt**, ezért e csomagban nincs rá aktív diagnosztika.
-- A TECH három fűtőkörének kijelzése: `sensor.wifi_rs_beepitett_szelep_1_homerseklet`, `sensor.wifi_rs_beepitett_szelep_2_homerseklet`, `sensor.wifi_rs_beepitett_szelep_3_homerseklet`, illetve 3 darab `number.wifi_rs_futeskor_N_szelep_beallitott_hom`.
-- Opció: `pump_feedback_entities` 1/2/3, de konkrét hiteles TECH kimeneti entitások nem ismertek.
+**Csak megfigyelés.** A TECH, MINI-D, szivattyúk, keverőszelepek célértékei és biztonsági funkciói változatlanok. Nem tartalmaz sem kapcsolási, sem klíma/parancs szolgáltatáshívást, sem értesítést. Nem került az éles Home Assistantba.
 
-## Készült fájl
-`examples/futestuning-2-tech-monitoring-package.yaml`
+## Ellenőrzött, 2026-10-28-i HA-entitásmentésből származó ID-k
+- Puffer TH Elite: `sensor.elite_thr316d_sonoff_1002bdc9e4_temperature`
+- Pince hőigény/engedélyezés MINI-D: `switch.pince_szivattyu_mini_d_sonoff_10029bc9f9_1`
+- Padló hőigény/engedélyezés MINI-D: `switch.padlo_szivattyu_mini_d_sonoff_10029bc9ca_1`
+- Radiátor hőigény/engedélyezés MINI-D: `switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1`
+- TECH kör 1/2/3 hőmérséklet: `sensor.wifi_rs_beepitett_szelep_1_homerseklet`, `sensor.wifi_rs_beepitett_szelep_2_homerseklet`, `sensor.wifi_rs_beepitett_szelep_3_homerseklet`.
 
-Csak érzékelők:
-- TH Elite pufferadat hiánya 10 perc után.
-- Padló és radiátor közvetlen MINI-D hőigényjelének adatvesztése 10 perc után.
-- Padló: hőigény és puffer <30 °C 15 percen át.
-- Radiátor: hőigény és puffer <35 °C 15 percen át.
-- Napi MINI-D *hőigényjel-időtartam* (nem igazolt pumpaüzemidő).
+**A MINI-D a hőigény/engedélyező jel, nem a TECH szivattyú valódi működésének visszajelzése.**
+Az aktuális entitáslétezés és név csak élő HA-ban ellenőrizhető.
+A TECH Controllers 2.8.3 képes relé tile alapján bináris érzékelőt létrehozni, de ezen 3 körhöz tényleges relé-tile/entitás nem igazolt.
 
-**Nem** állítunk elő 'TECH pumpa hibás' vagy 'ténylegesen fűt' riasztást, mert nem ismert igazolt motorüzem visszajelzés. A hűvös puffer jelzés működési figyelmeztetés, nem feltétlen rendszerhiba.
+## Előkészített package: `examples/futestuning-2-tech-monitoring-package.yaml`
+- Hiányzó vagy fizikailag életszerűtlen puffer- és TECH-kör hőmérséklet: 10 perc késleltetés, helyreállás 2 perc.
+- Hiányzó MINI-D hőigényjel (pince/padló/radiátor): 10 perc késleltetés, helyreállás 2 perc.
+- Padló: 15 percen át hőigény + puffer <30 °C → tartós hideg puffer figyelmeztetés.
+- Radiátor: 15 percen át hőigény + puffer <35 °C → tartós hideg puffer figyelmeztetés.
+- Pince: nincs kitalált pufferküszöb, így csak adatellenőrzés van.
+- Napi három MINI-D jel BE állapot-időtartama a history_stats segítségével: **nem** tényleges szivattyú üzemóra.
+- A TECH körhőmérsékletek trendje a meglévő HA History/Recorder grafikonból használható; nincs belőle gyártott áramlás- vagy szivattyúállapot.
+- A hideg puffer jelzés nem feltétlen műszaki hiba: pufferfeltöltés és normál átmenet is okozhatja.
+- A sablonok HA-indulásakor és távoli kapcsolatvesztéskor óvatosan kell értelmezni a késleltetéseket.
 
-## Élesítés előtti kötelező ellenőrzések
-1. Teljes Home Assistant mentés.
-2. A fenti entitásokat ellenőrizni a HA Fejlesztői eszközök / Állapotok alatt.
-3. Ellenőrizni, hogy egy meglévő package nem tartalmazza-e a létrehozandó unique_id-kat.
-4. A meglévő `configuration.yaml` packages-betöltéséhez igazítani: ne hozzunk létre második root `template` vagy `sensor` blokkot.
-5. HA-konfiguráció ellenőrzése, majd megfelelő újratöltés.
-6. Az adatvesztési jelzéseket kontrollált módszerrel tesztelni: 'unavailable' nem azonos 'off'-fal.
-7. A puffer hideg jelzést valós hőigény és 15 perc tartós <30/<35 °C mellett ellenőrizni.
-8. A recorder megőrzési időt ellenőrizni; a history_stats csak rendelkezésre álló történeti adaton dolgozhat.
-9. Jelenleg **nincs éles telepítés**, értesítés, szivattyúkapcsolás, TECH-célérték-módosítás vagy dashboard-felülírás.
+## Tesztek
+`tests/tech-monitoring.py` statikusan ellenőrzi az entitásköröket, a csomagszerkezetet, a küszöböket (30/35 °C), az adatvesztést és hogy nincs vezérlő/hozzáépítés modul.
+Az Actions a meglévő Playwright/dashboard tesztekkel együtt futtatja.
+**A CI nem helyettesíti az éles HA `Check configuration` vizsgálatát.**
 
-## Következő szakasz
-Az élő HA-ból a TECH pumpa reléállapotok és a pince közvetlen hőigényjelek felmérése. Csak ezek után üzemidő-számlálás és körönkénti valódi diagnosztika.
+## Telepítési kapuk
+1. Teljes élő HA backup és jelenlegi `configuration.yaml`/package include felmérése.
+2. Ütközésmentes `unique_id` és aktuális entitásazonosítók ellenőrzése.
+3. Meglévő package include szerint beillesztés; nem duplikálni root `template`/`sensor` kulcsot.
+4. HA konfigurációellenőrzés; szükséges reload/restart.
+5. Pufferadat kiesés és hőigénypróba kontrollált teszt, hőmérsékleti grafikon ellenőrzés.
+6. Csak validált élő adatok után lehet a Fűtéstuning dashboardon diagnosztikai állapotot megjeleníteni.
+7. Nincs automatikus éles merge vagy HA-telepítés.
+
+## Későbbi fejlesztés
+Előremenő hőmérséklet emelkedésének időbeli vizsgálata hőigény esetén, de csak a kazánházi fizikai hidraulika és a TECH előremenő érzékelők viselkedésének helyszíni kalibrálása után. Nem nevezhető pumpahibának vagy igazolt fűtésnek.
