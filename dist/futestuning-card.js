@@ -1,4 +1,4 @@
-/* Fűtéstuning custom Home Assistant Lovelace card, v0.6.19 */
+/* Fűtéstuning custom Home Assistant Lovelace card, v0.6.20 */
 const DATA={
  buffer:"sensor.elite_thr316d_sonoff_1002bdc9e4_temperature",
  alert:"binary_sensor.hideg_puffer_futesi_igeny_van",
@@ -47,7 +47,7 @@ const EXTENSION_HEATING={
 const BOILER={switch:"switch.bojler_sonoff_1002a15517_1",power:"sensor.bojler_sonoff_1002a15517_power",energy:"sensor.bojler_sonoff_1002a15517_energy_day"};
 const SHARED_RADIATOR_ROOMS=new Set(["Emeleti fürdő","Hanna háló","Nappali / konyha / étkező"]);
 const TECH_DEMAND=["binary_sensor.wifi_rs_hagyomanyos_szobaterm_1","binary_sensor.wifi_rs_hagyomanyos_szobaterm_2","binary_sensor.wifi_rs_hagyomanyos_szobatermosztat_3"];
-const VERSION='0.6.19';
+const VERSION='0.6.20';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths={fire:'M12 2C13 7 20 8 20 15a8 8 0 0 1-16 0c0-4 3-6 5-9 0 4 2 5 3 6 2-3 1-7 0-10Z',home:'m3 11 9-8 9 8v10h-6v-7H9v7H3Z',floor:'M4 21V15H10V9H16V3H22',water:'M12 2C10 6 4 12 4 16a8 8 0 0 0 16 0c0-4-6-10-8-14Z',rad:'M5 4v16M10 4v16M15 4v16M20 4v16M2 7h21M2 17h21',bed:'M3 17V8h18v13M3 17h18M3 21v-4M6 8V4h12v4M7 12h10',bath:'M3 12h18v3a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6ZM6 12V5a3 3 0 0 1 6 0',car:'m4 10 2-6h12l2 6M3 10h18v8H3ZM6 18v3M18 18v3M6 14h1M17 14h1',screen:'M3 3h18v14H3ZM8 21h8M12 17v4',pipe:'M3 3h6v6h6v6h6v6M9 6h12M18 3v6',power:'M12 2v10M6 5a9 9 0 1 0 12 0',leaf:'M20 3C6 1 1 8 5 16c4 8 15 4 15-13ZM5 18 16 7',moon:'M20 15A9 9 0 0 1 9 3a9 9 0 1 0 11 12Z',calendar:'M3 5h18v16H3ZM7 2v6M17 2v6M3 11h18',snow:'M12 2v20M3 7l18 10M3 17 21 7M8 4l4 3 4-3M8 20l4-3 4 3',tank:'M6 5a6 3 0 0 0 12 0 6 3 0 0 0-12 0v14a6 3 0 0 0 12 0V5M6 5a6 3 0 0 0 12 0',chip:'M6 6h12v12H6ZM9 1v5M15 1v5M9 18v5M15 18v5M1 9h5M1 15h5M18 9h5M18 15h5',chart:'M4 21V12M10 21V6M16 21V2M22 21V9',thermo:'M9 14V5a3 3 0 0 1 6 0v9a5 5 0 1 1-6 0ZM12 8v10',check:'m5 12 4 4L20 5'};
 const ico=(n,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.home}"/></svg>`;
@@ -124,7 +124,7 @@ class FutestuningCard extends HTMLElement{
 
  roomCurrent(r){const v=this.num(this.s(r[2])?.state);if(v!==null&&v>-100)return this.temp(v);const ac=ROOM_EXTRAS[r[1]]?.ac;const av=ac?this.num(this.s(ac)?.attributes?.current_temperature):null;if(av!==null&&av>-100&&av<80)return this.temp(av);return this.temp(this.s(this.roomClimates(r)[0])?.attributes?.current_temperature)}
  roomTarget(r){return [...new Set(this.roomClimates(r).map(id=>this.target(id)))].join(' / ')||'—'}
- pump(i){const cfg=this.cfg.pump_feedback_entities?.[i+1];if(cfg){const s=this.s(cfg)?.state;return {state:s==='on'?true:s==='off'?false:null,source:'TECH'}}const d=this.circuitDemand(i),s=d===true?'on':d===false?'off':null,t=this.num(this.s(DATA.buffer)?.state);if(s==='off')return {state:false,source:'Becslés'};if(i===0||s!=='on'||t===null||t<=-100)return {state:null,source:'Becslés'};return {state:i===1?t>=30:t>=35,source:'Becslés'}}
+ pump(i){const enabled=this.circuitEnabled(i);if(enabled===false)return {state:false,source:'TECH letiltva'};if(enabled===null)return {state:null,source:'TECH állapot nem elérhető'};const cfg=this.cfg.pump_feedback_entities?.[i+1];if(cfg){const s=this.s(cfg)?.state;return {state:s==='on'?true:s==='off'?false:null,source:'TECH'}}const d=this.circuitDemand(i),s=d===true?'on':d===false?'off':null,t=this.num(this.s(DATA.buffer)?.state);if(s==='off')return {state:false,source:'Becslés'};if(i===0||s!=='on'||t===null||t<=-100)return {state:null,source:'Becslés'};return {state:i===1?t>=30:t>=35,source:'Becslés'}}
  roomStatus(r){if(EXTENSION_HEATING[r[1]])return this.status(this.roomOperation(r).state);if(this.isLivingRoom(r))return {heating:'Fűt',demand:'Hőigény',idle:'Nem fűt',unknown:'Nincs adat'}[this.livingAppearance()];const d=this.roomDemand(r),h=this.roomOperation(r).state;return d===false?'Nem fűt':d===null?'Nincs adat':h===true?'Fűt':'Hőigény'}
 
  isTrv(id){return this.allowedClimate(id)&&id?.includes('_radiator')&&id?.includes('_sonoff_')}
