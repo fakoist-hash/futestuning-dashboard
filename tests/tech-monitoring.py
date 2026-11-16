@@ -63,7 +63,7 @@ print("PASS: TECH-only monitoring package, thresholds, unavailable and no contro
 # Weather context is separate, read-only, and must never infer temperature
 # from invalid TECH '-203' readings or assume current weather entity location.
 weather_cfg = yaml.safe_load(Path("examples/futestuning-2-weather-monitoring-package.yaml").read_text(encoding="utf-8"))
-assert set(weather_cfg) == {"template"}
+assert set(weather_cfg) == {"template", "sensor", "utility_meter"}
 weather_sensors = weather_cfg["template"][0]["sensor"]
 weather_binary = weather_cfg["template"][1]["binary_sensor"]
 assert len(weather_sensors) == 2 and len(weather_binary) == 1
@@ -78,3 +78,9 @@ assert weather_binary[0]["device_class"] == "problem"
 assert weather_binary[0]["delay_on"] == "00:10:00"
 assert "action:" not in str(weather_cfg) and "automation:" not in str(weather_cfg)
 print("PASS: weather template structure, sanity/unit checks and read-only policy")
+
+assert weather_cfg["sensor"][0]["platform"] == "integration"
+assert weather_cfg["sensor"][0]["method"] == "left"
+assert weather_cfg["sensor"][0]["unit_time"] == "h"
+assert weather_cfg["utility_meter"]["futestuning_weather_heating_degree_hours_today"]["cycle"] == "daily"
+print("PASS: degree-hour integration and daily cycle present; live entity ID still requires validation")
