@@ -1,0 +1,48 @@
+# READ-ONLY weather context for TECH diagnostics. NOT installed in HA yet.
+# Source present in the 2026-10-28 entity inventory; its current availability
+# and configured location must be verified in the live HA before deployment.
+# No heater controls, weather services, or automations.
+template:
+  - sensor:
+      - name: "Fűtéstuning kültéri hőmérséklet időjárásból"
+        unique_id: futestuning_weather_outdoor_temperature
+        default_entity_id: sensor.futestuning_weather_outdoor_temperature
+        device_class: temperature
+        state_class: measurement
+        unit_of_measurement: "°C"
+        availability: >-
+          {% set w='weather.forecast_otthon' %}
+          {% set t=state_attr(w,'temperature') %}
+          {% set u=state_attr(w,'temperature_unit') %}
+          {{ states(w) not in ['unknown','unavailable']
+             and u == '°C'
+             and is_number(t)
+             and -40 <= t|float <= 55 }}
+        state: >-
+          {{ state_attr('weather.forecast_otthon','temperature') | float(0) | round(1) }}
+
+      - name: "Fűtéstuning fűtési fokhőmérséklet különbség"
+        unique_id: futestuning_weather_heating_degree_delta
+        default_entity_id: sensor.futestuning_weather_heating_degree_delta
+        unit_of_measurement: "°C"
+        state_class: measurement
+        availability: >-
+          {{ is_number(states('sensor.futestuning_weather_outdoor_temperature')) }}
+        state: >-
+          {{ [0, 18 - states('sensor.futestuning_weather_outdoor_temperature')|float(18)]|max|round(2) }}
+
+  - binary_sensor:
+      - name: "Fűtéstuning időjárási hőmérséklet adat hiányzik"
+        unique_id: futestuning_weather_outdoor_missing
+        default_entity_id: binary_sensor.futestuning_weather_outdoor_missing
+        device_class: problem
+        state: >-
+          {{ not is_number(states('sensor.futestuning_weather_outdoor_temperature')) }}
+        delay_on: "00:10:00"
+        delay_off: "00:02:00"
+
+# The difference above is instantaneous °C, NOT degree-hours.
+# Heating degree-hours require time integration of validated recorded data.
+# Unit checks intentionally fail closed for Fahrenheit/missing unit.
+# To avoid silently assuming a local measurement, weather.forecast_otthon must
+# be verified as geographically appropriate to Tokodaltáró before deployment.
