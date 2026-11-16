@@ -59,3 +59,22 @@ for uid, e in [
 assert evaluate(case("futestuning_tech_buffer_missing")["state"],{buffer:"unknown"})
 assert not evaluate(case("futestuning_tech_buffer_missing")["state"],{buffer:"53.6"})
 print("PASS: TECH-only monitoring package, thresholds, unavailable and no control actions")
+
+# Weather context is separate, read-only, and must never infer temperature
+# from invalid TECH '-203' readings or assume current weather entity location.
+weather_cfg = yaml.safe_load(Path("examples/futestuning-2-weather-monitoring-package.yaml").read_text(encoding="utf-8"))
+assert set(weather_cfg) == {"template"}
+weather_sensors = weather_cfg["template"][0]["sensor"]
+weather_binary = weather_cfg["template"][1]["binary_sensor"]
+assert len(weather_sensors) == 2 and len(weather_binary) == 1
+assert weather_sensors[0]["device_class"] == "temperature"
+assert weather_sensors[0]["state_class"] == "measurement"
+assert weather_sensors[0]["unit_of_measurement"] == "°C"
+assert weather_sensors[1]["unit_of_measurement"] == "°C"  # instantaneous delta, not degree-hours
+assert "weather.forecast_otthon" in weather_sensors[0]["availability"]
+assert "temperature_unit" in weather_sensors[0]["availability"]
+assert "-40" in weather_sensors[0]["availability"] and "55" in weather_sensors[0]["availability"]
+assert weather_binary[0]["device_class"] == "problem"
+assert weather_binary[0]["delay_on"] == "00:10:00"
+assert "action:" not in str(weather_cfg) and "automation:" not in str(weather_cfg)
+print("PASS: weather template structure, sanity/unit checks and read-only policy")
