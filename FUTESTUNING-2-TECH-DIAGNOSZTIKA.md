@@ -62,3 +62,8 @@ A három fő TECH-kör elemzése a külső időjárási körülményekkel együt
 **Korlát:** a MINI-D BE-idő és a fokóra arány *nem hőenergiahatásfok*, és nem bizonyítja a szivattyú működését vagy hidraulikus keringést. Eltérő kazánüzem, pufferfeltöltés, napsütés és használati szokások torzíthatják. Az első 2–4 hét kalibrációs/megfigyelési időszak; anomália-riasztás csak stabil referencia után, és nem automatikus TECH vezérlés.
 
 **Megjelenítés:** Főoldalra azonos időtengelyű külső hőmérséklet+puffer trend és fűtési hőigény összesítés; részletes statisztikában napi időjárási kontextus. A három eredeti oldal megmarad, a hozzáépítéshez nem adunk új logikát. A jelenlegi időjárási modul dokumentált terv: még NINCS elkészült, bekötött HA-entitása vagy élesítése.
+
+### 2026-11-16: megtalált HA időjárás-entitás és előkészített kód
+A korábbi (2026-10-28-i) HA entitáslista szerint `weather.forecast_otthon` létezett (`clear-night` állapot, 7,5 °C megjelenített adattal). Ez az első konkrét forrás-jelölt; éles működése, a `temperature`/`temperature_unit` attribútumok és földrajzi helyszíne még nem ellenőrzött.
+
+Új *külön* package: `examples/futestuning-2-weather-monitoring-package.yaml`. Csak hőmérséklet és adathiány, Celsius és -40…55 °C adattartomány ellenőrzés; egység hiányakor/unavailable esetén nem gyárt értéket. A `18 - T_külső` pozitív része az adott pillanatban csak hőmérséklet-különbség (°C), **nem** integrált fokóra. Időbeli integrálás, napi bontás és összehasonlítás csak élő HA adatok és Recorder ellenőrzése után. Nincs TECH/parancs módosítás.
