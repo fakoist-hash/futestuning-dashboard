@@ -46,3 +46,29 @@ template:
 # Unit checks intentionally fail closed for Fahrenheit/missing unit.
 # To avoid silently assuming a local measurement, weather.forecast_otthon must
 # be verified as geographically appropriate to Tokodaltáró before deployment.
+
+# Integrate the positive heating-degree delta over elapsed time.
+# For a piecewise-constant weather feed, use left Riemann sum instead of
+# trapezoidal interpolation. The source must have a valid reading.
+sensor:
+  - platform: integration
+    source: sensor.futestuning_weather_heating_degree_delta
+    name: "Fűtéstuning fűtési fokóra összesen"
+    unique_id: futestuning_weather_heating_degree_hours_total
+    method: left
+    unit_time: h
+    max_sub_interval: "00:30:00"
+    round: 2
+
+# Daily difference of the integrated total; reset at local midnight.
+utility_meter:
+  futestuning_weather_heating_degree_hours_today:
+    source: sensor.futestuning_futesi_fokora_osszesen
+    name: "Fűtéstuning fűtési fokóra ma"
+    cycle: daily
+
+# Important: the integration sensor's generated entity_id is not guaranteed
+# to equal the slug above in an existing HA installation. Check actual
+# entity registry ID before enabling the utility_meter, then adjust source.
+# Recorder is required for historical comparison. Missing readings must be
+# displayed as missing coverage, not as verified 0 heating demand.
