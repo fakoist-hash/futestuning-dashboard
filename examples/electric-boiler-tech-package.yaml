@@ -1,0 +1,97 @@
+# Fűtéstuning – elektromos kazános üzem, TECH indítási küszöbök.
+# Telepítés: /homeassistant/packages/futestuning_electric.yaml
+# Csak a három TECH indítási hőmérsékletet módosítja; eWeLink jeleneteket NEM vezérel.
+# A kézi golyóscsapok és az elektromos kazán helyes állását a kezelő ellenőrzi.
+input_boolean:
+  futestuning_electric_mode:
+    name: Fűtéstuning elektromos kazán üzem – TECH
+    icon: mdi:water-boiler
+input_number:
+  futestuning_tech_start_saved_1:
+    name: TECH eredeti indítási hőmérséklet 1
+    min: 10
+    max: 80
+    step: 1
+    mode: box
+  futestuning_tech_start_saved_2:
+    name: TECH eredeti indítási hőmérséklet 2
+    min: 10
+    max: 80
+    step: 1
+    mode: box
+  futestuning_tech_start_saved_3:
+    name: TECH eredeti indítási hőmérséklet 3
+    min: 10
+    max: 80
+    step: 1
+    mode: box
+script:
+  futestuning_electric_tech_on:
+    alias: Fűtéstuning – elektromos üzem (TECH)
+    mode: single
+    sequence:
+      - condition: state
+        entity_id: input_boolean.futestuning_electric_mode
+        state: "off"
+      - condition: template
+        value_template: >-
+          {% set ids = [
+            'number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet',
+            'number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_2',
+            'number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_3'
+          ] %}
+          {{ ids | map('states') | map('is_number') | select('equalto', false) | list | length == 0
+             and ids | map('states') | map('float') | min >= 10
+             and ids | map('states') | map('float') | max <= 80 }}
+      - action: input_number.set_value
+        target: {entity_id: input_number.futestuning_tech_start_saved_1}
+        data:
+          value: "{{ states('number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet') | float }}"
+      - action: input_number.set_value
+        target: {entity_id: input_number.futestuning_tech_start_saved_2}
+        data:
+          value: "{{ states('number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_2') | float }}"
+      - action: input_number.set_value
+        target: {entity_id: input_number.futestuning_tech_start_saved_3}
+        data:
+          value: "{{ states('number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_3') | float }}"
+      # Előre jelöljük a helyreállítandó üzemmódot: részleges hiba után
+      # is a visszaállító gombbal hozhatók vissza az elmentett értékek.
+      - action: input_boolean.turn_on
+        target: {entity_id: input_boolean.futestuning_electric_mode}
+      - repeat:
+          for_each:
+            - number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet
+            - number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_2
+            - number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_3
+          sequence:
+            - action: number.set_value
+              target:
+                entity_id: "{{ repeat.item }}"
+              data: {value: 10}
+  futestuning_electric_tech_off:
+    alias: Fűtéstuning – normál üzem visszaállítás (TECH)
+    mode: single
+    sequence:
+      - condition: state
+        entity_id: input_boolean.futestuning_electric_mode
+        state: "on"
+      - condition: template
+        value_template: >-
+          {% set ids = [
+            'input_number.futestuning_tech_start_saved_1',
+            'input_number.futestuning_tech_start_saved_2',
+            'input_number.futestuning_tech_start_saved_3'
+          ] %}
+          {{ ids | map('states') | map('is_number') | select('equalto', false) | list | length == 0 }}
+      - action: number.set_value
+        target: {entity_id: number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet}
+        data: {value: "{{ states('input_number.futestuning_tech_start_saved_1') | float }}"}
+      - action: number.set_value
+        target: {entity_id: number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_2}
+        data: {value: "{{ states('input_number.futestuning_tech_start_saved_2') | float }}"}
+      - action: number.set_value
+        target: {entity_id: number.wifi_rs_szivattyu_beallitasok_inditasi_homerseklet_3}
+        data: {value: "{{ states('input_number.futestuning_tech_start_saved_3') | float }}"}
+      - action: input_boolean.turn_off
+        target: {entity_id: input_boolean.futestuning_electric_mode}
