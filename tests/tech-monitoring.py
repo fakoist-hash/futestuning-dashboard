@@ -46,6 +46,9 @@ for temp, demand, expected in [(34.9,"on",True),(35,"on",False),(20,"off",False)
     assert evaluate(cold_rad["availability"],values)
     assert evaluate(cold_rad["state"],values) == expected
 assert not evaluate(cold_floor["availability"],{buffer:"unavailable",floor:"on"})
+for invalid in ['-203','111','NaN','Infinity']:
+    assert not evaluate(cold_floor['availability'],{buffer:invalid,floor:'on'})
+    assert not evaluate(cold_rad['availability'],{buffer:invalid,rad:'on'})
 assert not evaluate(cold_rad["availability"],{buffer:"35",rad:"unavailable"})
 for uid, e in [
     ("futestuning_tech_basement_temp_missing","sensor.wifi_rs_beepitett_szelep_1_homerseklet"),
