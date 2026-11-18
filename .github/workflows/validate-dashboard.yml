@@ -1,7 +1,7 @@
 name: Validate dashboard bundle
 on:
   push:
-    paths: ['dist/**', 'hacs.json', 'examples/**', 'tests/**', '.github/workflows/validate-dashboard.yml']
+    paths: ['tools/**', 'dist/**', 'hacs.json', 'examples/**', 'tests/**', '.github/workflows/validate-dashboard.yml']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -20,7 +20,7 @@ jobs:
           p=pathlib.Path('.')
           h=json.loads((p/'hacs.json').read_text())
           assert h['filename']=='futestuning-dashboard.js'
-          expected=(p/'dist/futestuning-card.js').read_bytes()+b'\n;'+(p/'dist/otthon-card.js').read_bytes()
+          expected=(p/'dist/futestuning-diagnostics.js').read_bytes()+b'\n;'+(p/'dist/futestuning-card.js').read_bytes()+b'\n;'+(p/'dist/otthon-card.js').read_bytes()
           assert (p/'dist/futestuning-dashboard.js').read_bytes()==expected
           assert (p/'examples/dashboard.yaml').is_file()
           PY
@@ -28,6 +28,9 @@ jobs:
         run: |
           python3 -m pip install PyYAML Jinja2
           python3 tests/extension-template.py
+          python3 tests/tech-monitoring.py
+          python3 tests/control-packages.py
+          node tests/diagnostics-test.cjs
       - name: Install browser test tools
         run: |
           npm install --no-save playwright@1.56.1
