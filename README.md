@@ -1,155 +1,62 @@
-# Fűtéstuning Dashboard · 0.6.15
+# Fűtéstuning Dashboard · 0.7.0
 
-Három Home Assistant nézet: Főoldal, Kazánház, Helyiségek. Fekvő iPadhez igazított elrendezés, a 2026. október 28-i három képes koncepció alapján.
+Három meglévő Home Assistant oldal: **Főoldal → Kazánház → Helyiségek**. A HACS erőforrás továbbra is `dist/futestuning-dashboard.js`; az Otthon kártya változatlanul része a csomagnak.
 
-- Főoldal: két nagy körkártya, három kisebb kártya, rendszerösszegzés és kazánházi előnézet.
-- Kazánház: külön SVG kazán/puffer, három TECH kör, HMV és hozzáépítés. A rajz csak a három TECH célhőmérsékletét módosítja. A csövek és irányok sematikusak.
-- Helyiségek: emelet, földszint, pince; kiválasztható szobák, termosztátív, külön szelepállítás és a ténylegesen közölt presetek. A Gree klíma vezérlői csak a hozzájuk rendelt ismert klímaentitásokra küldenek parancsot.
+## Mi működik a kódban?
 
-## Telepítés és frissítés
+- Tíz helyiség, teljes csempeszín: szürke = nincs hőigény, piros = fűtésjelzés, zöld = hőigény, de a működés feltétele nem teljesül. Hiányzó adat külön állapot.
+- Két radiátoros szobák: közös és radiátoronkénti célértékállítás, azonnali kért érték, sorba rendezett parancsok és elmaradt visszajelzés jelzése. SONOFF TRV kézi `heat` módja állítható; az automatikus programot nem írja át észrevétlenül.
+- A három TECH kör Aktív/Inaktív állapota és jóváhagyott TECH kapcsolója. Hiányzó állapotnál nincs feltételezett működés. A MINI-D és a szivattyú kézzel nem kapcsolható a rajzról.
+- TECH szivattyú-visszajelzés adható meg `pump_feedback_entities: {1: ..., 2: ..., 3: ...}` alatt. Enélkül a padló MINI-D + puffer ≥30 °C, a radiátor MINI-D + puffer ≥35 °C alapján **becsült**; a pince működését nem találjuk ki. A forgó jel és a nyilak nem áramlásmérés.
+- Nappali: padló és konvektor külön állapot, bármelyik fűtésjelzése esetén piros csempe.
+- Hozzáépítés: két külön 10 W-os sablonérzékelő, mindkét irányban 5 s késleltetés, adathiány-kezelés. A két köri szivattyú és a töltőszivattyú animációja ugyanazt a visszajelzést követi. Egy működő kör elég a töltőszivattyú jelzéséhez. Csak kijelzés.
+- Négy Gree klíma heti időprogramja, külön HA-csomaggal. A szerkesztő nem küld közvetlen indítási parancsot; a program a HA-ban fut, az iPad nélkül is.
+- Elektromos TECH üzem: három indulási hőmérséklet mentése, 10 °C, majd visszaállítás. Közös HA-script akadályozza meg a párhuzamos be-/visszaállítást. Nem vezérli az elektromos kazánt, eWeLink jeleneteket vagy kézi csapokat.
 
-HACS-ban a `fakoist-hash/futestuning-dashboard` egyedi Dashboard tároló. A csomag fő fájlja `dist/futestuning-dashboard.js`. Frissítés után a böngészőt is újra kell tölteni; a fejlécben 0.6.15 látszik.
+## Diagnosztika és előzmények
 
-A HACS-frissítés a kártya kódját frissíti, a meglévő dashboard nézetkonfigurációját nem írja át. Az `examples/dashboard.yaml` a teljes háromnézetes konfiguráció egy külön Fűtéstuning dashboardhoz. A régi V6 nézetek picture-elements vagy markdown kártyái nem alakulnak át automatikusan. Ne írd felül a régi dashboardokat.
+A Főoldal **Diagnosztika és előzmények** gombja a meglévő HA History/Recorder adatokat olvassa. Nem kell hozzá új kötelező integráció vagy új dashboard.
 
-## Állapotok és korlátok
+- Utolsó 24 óra: kültéri, puffer- és három TECH hőmérséklet, alatta a három MINI-D hőigényjel ugyanazon időtengelyen.
+- Hét nap: hőigényidő, igazolt KI→BE hőigény-átmenetek, adatlefedettség, kültéri minimum/idővel súlyozott átlag/maximum, 18 °C bázisú fokóra.
+- Hasonló kültéri átlagú (±2 °C), hasonló termosztát-célértékű (±0,5 °C) teljes napok összevetése. Legalább 95% lefedettség, legalább 1 fokóra. Az aktuális résznap nem referencia.
+- Belső hőmérséklet és célérték kontextus; napi CSV és időbélyegzett adatsorokat/adatkimaradásokat tartalmazó JSON export.
+- `unknown`/`unavailable` megszakítja a lefedettséget. Hiányzó történet nem 0 üzemóra. A Recorder által nem jelzett leállást a kártya nem tudja utólag felismerni.
 
-A koncepcióképek mintaértékei nem kerülnek át élő adatként. Nincs háromzónás puffermérés, ha csak a TH Elite egy mérési pontja ismert. Az ismeretlen érték `—` vagy „Nincs adat”. Az Eco/Komfort/Éjszaka/Távollét csak akkor aktív, ha az adott termosztát `preset_modes` listája tartalmazza a megfelelő módot; a kártya nem rendel hozzá kitalált célhőmérsékleteket.
+A MINI-D BE-idő **hőigényidő, nem tényleges szivattyúüzemóra**. Az indulásszám sem motorindulásszám. A hőigényóra/fokóra nem energiahatásfok. Hőenergia-mérő nélkül nem számolunk fiktív kWh-t. Szél- és napsugárzás-korrekció, prediktív vezérlés és automatikus anomália-beavatkozás nincs: ehhez igazolt forrás és kalibrált referencia kell.
 
-A szivattyúkhoz opcionálisan `pump_feedback_entities` adható meg 1, 2, 3 kulcsokkal (valódi on/off visszajelzés). Enélkül a padló becslése: MINI-D on és TH Elite >30 °C; a radiátoré: MINI-D on és TH Elite ≥35 °C. Az állapot „Becslés” feliratot kap. A pince on állapotára nincs megadott becslési küszöb, így visszajelzés nélkül ismeretlen. Nem küldünk kapcsolási parancsot szivattyúnak vagy keverőszelepnek. A forgó szimbólum a feliratozott állapotot jelzi, nem mért vízáramlást.
+Kültéri forrás: `outdoor_entity` explicit beállítás, enélkül egyetlen érvényes kültéri TECH szenzor, végül a meglévő `weather.forecast_otthon` (vagy `weather_entity`) aktuális hőmérséklet-attribútuma. Nem használ előrejelzést történeti mérésként. A szolgáltatás helyszínét **Tokodaltáróra** az élő HA-ban ellenőrizni kell. Csak Celsius-adatot fogadunk el; a hibás -203 °C kiesik.
 
-A kép szerinti elrendezést HTML/SVG valósítja meg. A képgenerált fotórealisztikus gépészeti dekoráció helyett olvasható vektoros elemek szerepelnek.
+## Frissítés a meglévő HA-ban
 
-## Ellenőrzés
+1. Teljes HA-mentés, a működő dashboard konfigurációjának és a jelenlegi csomagoknak külön mentése.
+2. A HACS meglévő tárolójának frissítése/újraletöltése. A fejlécben **0.7.0** legyen. A HACS a HA YAML-csomagokat és a nézetsorrendet nem telepíti automatikusan.
+3. Csak a már meglévő Fűtéstuning dashboardot módosítsuk. Az `examples/dashboard.yaml` a sorrend és a kártyák referenciája; más dashboardot nem kell létrehozni vagy felülírni.
+4. A szükséges csomagokat a meglévő `homeassistant: packages:` include alá, ütközésmentesen illesszük. Konfigurációellenőrzés után a megfelelő újratöltés/újraindítás. Meglévő segédértékeket ne töröljünk.
+5. Az érzékelők, klímaprogramok és TECH-scriptek élő állapotát, valamint a Recorder válaszát ellenőrizzük. Az alábbi automatikus tesztek nem bizonyítják a fizikai rendszer működését.
 
-`tests/visual-browser.cjs`: mindhárom oldal öt szélességen; kilógás; TECH célértékparancs; navigáció; szobatermosztát célérték; Eco; Gree ki/be és üzemmód, ventilátor; szivattyúparancs tiltása; hiányzó pufferadat és küszöbértékek. A teszt egy elkülönített Home Assistant tesztobjektumot használ, nem a fizikai rendszert. A CI képernyőképei tesztadatokat tartalmaznak.
+| Csomag | Szerep |
+|---|---|
+| `examples/extension-heating-package.yaml` | Szükséges a két hozzáépítéses kör késleltetett kijelzéséhez |
+| `examples/gree-weekly-schedule-package.yaml` | Szükséges a heti klímaprogramhoz; első telepítéskor kikapcsolt |
+| `examples/electric-boiler-tech-package.yaml` | Szükséges a jóváhagyott elektromos TECH üzemhez |
+| `examples/futestuning-2-tech-monitoring-package.yaml` | Opcionális, késleltetett passzív adathiány-/hidegpuffer-jelzések |
+| `examples/futestuning-2-weather-monitoring-package.yaml` | Opcionális HA-oldali fokóra-segédek; forráshely és generált entitásazonosító ellenőrzendő |
 
-A Home Assistant alatti telepítést és a fizikai eszközválaszokat külön kell ellenőrizni; a GitHub-ellenőrzés sikere ezeket nem bizonyítja.
+A négy Gree program engedélyező segédei és a három mentett TECH érték újraindításkor megmaradnak. Az elektromos mód részleges hibája után a visszaállítás újra megkísérelhető; a flag csak a helyreállító műveletek végén kapcsol ki.
 
-## SONOFF TRV módok
+## Fejlesztés és ellenőrzés
 
-A SONOFF TRV-ZB SonoffLAN entitások `heat` módja kézi, `auto` módja időprogramos, `off` módja az eszköz Eco/fagyvédelmi célértékét használja. Ezek a helyiségpanelen külön, ténylegesen támogatott módválasztóként szerepelnek. A +/− kézi módban állítható; automata módból a kártya nem vált át észrevétlenül. A heti programot nem írja át. Forrás: a SonoffLAN `XThermostatTRVZB` implementációja. A hasonló nevű Matter és SONOFF entitások eltérhetnek; a kártya az ismert SONOFF entitásokat használja.
+```
+node tools/build.cjs
+node tools/build.cjs --check
+node tests/diagnostics-test.cjs
+python tests/extension-template.py
+python tests/tech-monitoring.py
+python tests/control-packages.py
+node tests/visual-browser.cjs
+```
 
-## Helyiségek · iPad elrendezés (0.6.5)
+Python: PyYAML, Jinja2. Böngésző: Playwright 1.56.1 + Chromium; helyi telepített Chromiumhoz `FT_CHROMIUM_PATH` adható. A GitHub Actions mindezt végrehajtja. A képernyőképek **tesztadatok**, nem otthoni állapotképek. A csomagteszt a tényleges YAML-t futtatja szimulált állapot-/szolgáltatásmodellben; nem teljes HA konfigurációellenőrzés.
 
-A teljes áttekintés tíz nagy csempét mutat emelet/földszint/pince bontásban, állandó részletpanel nélkül. Részletek koppintásra, bezárható ablakban jelennek meg; az alapoldal 1024×768-as fekvő képernyőhöz igazodik. Kisebb telefonon görgethető elrendezésre vált. A fejléc és a jelmagyarázat alacsony.
-
-Szürke: nincs hőigény. Piros: hőigény és igazolt működési visszajelzés. Zöld: hőigény, de álló vagy nem igazolt szivattyú. Adathiány: külön „Nincs adat” felirat és szaggatott keret. A teljes csempe háttere változik.
-
-A csempén és a részletes ablakban a közös −/+ az elérhető, kézi módban állítható radiátorokat lépteti, mindegyiket a saját célértékétől. Két radiátornál a részletes ablakban külön gomb is van mindkettőhöz. Az időprogramos vagy Eco módban lévő radiátorhoz ott választható kézi mód. A kért célérték rögtön megjelenik, a visszajelzés elmaradását a dashboard jelzi. A klíma külön panelen állítható.
-
-A böngészős teszt a csempék és az érintési területek méretét, az iPad teljes magasságát, a modal nyitását/bezárását és a két szelepes parancsokat is ellenőrzi.
-
-## Teljes képernyős Főoldal és Kazánház (0.6.5)
-
-Fekvő iPaden mindkét oldal a Home Assistant fejlécének fenntartott hellyel együtt egy képernyőre igazodik. A Főoldalon kisebb térközök, tömörebb körkártyák, összegzés és kazánházi előnézet szerepel. A Kazánház rajza és adatkapcsolatai változatlanok; a felső és alsó kiegészítő csempék alacsonyabbak, a rajz a fennmaradó területet használja, aránytartó méretezéssel. Telefonon és nagyon alacsony ablakban a tartalom görgethető marad.
-
-Az ellenőrzés 1024×768, 1112×834, 1180×820 és 1024×700 nézetben, nyitott és zárt oldalsáv mellett vizsgálja a tényleges tartalom kilógását, az SVG és a három TECH célérték megmaradását.
-
-
-## Helyiségszínek és állapotforrások · 0.6.7
-
-A SONOFF TRV `hvac_action` értéke hőigény, nem szivattyú-visszajelzés. Két radiátornál bármelyik szelep aktív hőigénye elegendő; nincs igény csak akkor állítható, ha mindkettő ismert és inaktív. Hiányzó adat nem kikapcsolt állapot.
-
-Emeleti fürdő, Hanna háló és Nappali/konyha/étkező: közös radiátorköri hőigény a SONOFF MINI-D `switch.radiator_szivattyu_mini_d_sonoff_10029bc6bf_1` állapotából. A meglévő `switch.radiator_szivattyu_mini_d` alias csak akkor tartalék, ha a közvetlen SONOFF entitás nem létezik; elérhetetlen közvetlen entitás esetén nincs visszaesés régi aliasadatra.
-
-Igazolt működéshez meglévő `pump_feedback_entities: {3: ...}` TECH szivattyúrelé-entitás vagy `room_heating_entities` helyiségi visszajelzés kell. Ezekhez nem adunk kitalált entitásazonosítót. A szivattyú-hőmérséklet és a letapadás elleni védelem kapcsolója nem reléállapot. TECH-visszajelzés nélkül a három TRV nélküli helyiség a MINI-D és a puffer alapján kap állapotot: Nappali/konyha/étkező ≥30 °C, Emeleti fürdő és Hanna háló ≥35 °C esetén piros, aktív hőigény mellett. A megadott TECH-visszajelzés elsőbbséget kap, elérhetetlensége nem vált vissza becslésre. A „Fűt” állapot szivattyúalapú, nem helyiségenkénti hőleadásmérés.
-
-Visszajelzés nélkül vagy álló szivattyúnál az aktív hőigény zöld, „Hőigény” felirattal. Szülői háló és Lenti garázs számára nincs igazolt Computherm-hőigény entitás: az engedélyező okoskonnektor bekapcsolása önmagában nem hőigény. Ezért ezek „Nincs adat” állapotúak, amíg meglévő, ellenőrzött `room_demand_entities` és működési visszajelzés nincs hozzárendelve.
-
-Mentés: `backup/before-room-colors-2026-11-01` ág, a módosítás előtti a55b2198f585995ae3dd8744960312122d040cfe commit teljes forrásával és példakonfigurációjával. Ez repository-mentés, nem az élő Home Assistant exportja. Az élő felület elérését a Work böngészőjében `ERR_CERT_COMMON_NAME_INVALID` blokkolta; a hálózathoz és a tanúsítvány-ellenőrzéshez nem nyúltunk.
-
-Alkalmazás: a meglévő HACS csomag frissítése/újraletöltése és böngészőfrissítés után a kártya verziója 0.6.12. A már működő háromoldalas dashboard YAML-konfigurációja változatlan; azt nem kell az example fájllal felülírni. Az élő dashboard-konfiguráció mentése telepítés előtt továbbra is szükséges, mert innen nem volt hozzáférhető.
-
-## Rövid állapotfeliratok · 0.6.9
-
-A helyiségkártyákon és részleteiken kizárólag Fűt / Hőigény / Nem fűt / Nincs adat szerepel állapotként. A magyarázó megjegyzések, állapot-tooltippek és a parancs elfogadását követő ellenőrzési megjegyzés nem jelennek meg. A szín- és állapotszámítás, a kezelőszervek, valamint a valódi parancshibák kijelzése változatlan.
-
-## Főoldali színek és helyiségenkénti határok · 0.6.9
-
-A főoldali fűtési körök teljes háttere szürke, ha nincs hőigény; piros, ha hőigény és működés van; zöld, ha hőigény van, de a működés nem aktív vagy ismeretlen. A feliratok: Fűt / Hőigény / Nem fűt / Nincs adat. A radiátorkör kártyája és az összegzés is a közvetlen SONOFF MINI-D entitást használja. A nappali helyiséghatára 30 °C (beleértve a pontos határértéket); a két másik TRV nélküli helyiségé és a főoldali radiátorköré 35 °C. Mindegyikhez aktív radiátorköri hőigény kell.
-
-## Nappali két fűtési ága · 0.6.10
-
-A nappali/konyha/étkező kártyáján a padlófűtés a saját SONOFF MINI-D jelét és a puffer ≥30 °C határát követi. A TRV nélküli padlókonvektorok a radiátorkör MINI-D jelét és a puffer ≥35 °C határát követik. A tényleges TECH szivattyú-visszajelzés mindkét körnél elsőbbséget kap. Bármelyik ág működése pirosra váltja a teljes helyiségkártyát. Működő ág hiányában aktív hőigény zöld; mindkét ág ismert inaktív állapotában szürke. Hiányzó adat nem kikapcsolt állapot. A kártya alján és a részletekben külön Padlófűtés / Konvektorok állapot szerepel.
-
-## Nappali gombok visszaállítása · 0.6.11
-
-A nappali csempéjén a két fűtési ág állapotjelzése mellett ismét megjelenik a −/+ gombpár. A korábbi állíthatósági szabály változatlan: hozzárendelt fűtési termosztát nélkül a gombok inaktívak. A nappali Gree klímája külön vezérlés, a gombok nem módosítják azt vagy a TECH vízhőmérsékletét.
-
-A Fűt állapotú helyiségkártyák fejlécében lángikon jelenik meg; Hőigény, Nem fűt vagy Nincs adat esetén nem.
-
-## Mozgó áramlásjelzés · 0.6.12
-
-A Kazánház rajzán csak a működőnek jelzett három TECH fűtési körön jelennek meg mozgó nyilak. A meleg ágon a puffertől a szivattyún át a fűtőkör felé, a hideg ágon a körtől vissza a pufferig haladnak. A szivattyúállapot forrása változatlan: hozzárendelt TECH-visszajelzés, egyébként a korábbi MINI-D/puffer alapú logika. Ez sematikus állapotjelzés, nem áramlásmérés. Az animáció nem küld vezérlési parancsot, a célértékállítások megmaradnak. Csökkentett mozgás rendszerbeállításnál a mozgó nyilak rejtve maradnak.
-
-## 0.6.13 – hozzáépítés teljesítményalapú kijelzése
-
-A meglévő `Szülői háló` és `Lenti garázs` helyiségkártya a két külön
-sablonérzékelőt követi. A konnektor kapcsolóállapota nem jelent fűtést.
-A kártya csak megjelenít: `on` → piros / Fűt / láng;
-`off` → szürke / Nem fűt; hiányzó vagy hibás mérés, illetve hiányzó
-sablonérzékelő → Nincs adat. A küszöb legalább 10 W, mindkét irányban
-5 másodperc késleltetéssel, a Home Assistant szerverén.
-A kazánház statikus nyilai eltűntek; az üzemelő TECH körök mozgó nyilai megmaradtak.
-
-### Telepítési függőség
-
-A HACS frissítés **nem telepít szerveroldali sablonérzékelőket**.
-A `examples/extension-heating-package.yaml` a két sablont tartalmazza.
-Az élő konfiguráció mentése és ellenőrzése után a meglévő packages
-betöltésbe kell illeszteni; ha nincs packages használatban, a `template:`
-alatti listaelemet a meglévő template-listához kell hozzáadni.
-Nem szabad második `template:` vagy `homeassistant:` gyökérkulccsal
-felülírni a jelenlegi konfigurációt. A konfiguráció ellenőrzése után
-csak a template-entitásokat kell újratölteni, ha a meglévő betöltési mód ezt engedi.
-A létrejött entitásazonosítókat ellenőrizni kell; ütközés vagy korábbi
-átnevezés esetén a már létező Helyiségek kártya `room_heating_entities`
-hozzárendelésében kell a tényleges azonosítót megadni, új dashboard nélkül.
-
-| Helyiség | Teljesítménymérés | Elvárt sablonérzékelő |
-|---|---|---|
-| Szülői háló | `sensor.szuloi_halo_futesi_szivattyu_s60tpf_sonoff_1002a6b517_power` | `binary_sensor.futestuning_szuloi_halo_fut` |
-| Lenti garázs (hozzáépített garázs) | `sensor.lenti_garazs_futesi_szivattyu_sonoff_1002a6d5d3_power` | `binary_sensor.futestuning_hozzaepitett_garazs_fut` |
-
-Az azonosítók a feltöltött diagnosztikában W mértékegységgel és power
-eszközosztállyal szerepelnek. A 2026-11-01-i mentésben mindkét mérés 0 W,
-így a sablonok stabilizálódása után mindkét kártya Nem fűt állapotot kapna.
-A szülői háló konnektora ugyanebben a mentésben be volt kapcsolva.
-Ez történeti adat, nem aktuális állapot vagy futás közbeni idősor.
-
-### Ellenőrzés és korlátok
-
-`python tests/extension-template.py` (PyYAML és Jinja2) ellenőrzi a két
-sablont, a 9,9 / 10 / 10,1 W határt, az elérhetőséget és a két beállított
-5 másodperces késleltetést. A böngészős teszt mindkét kártyán ellenőrzi
-az on/off/unknown/unavailable/hiányzó állapotot, a lángot, a megmaradt
-gombokat és azt, hogy a kijelzés nem küld eszközparancsot.
-A Home Assistant tényleges időzítőinek életciklusa és az élő mérési
-értékek csak az otthoni rendszerben ellenőrizhetők.
-
-A forrás módosítása előtti állapot: `d6767e7fe68cef63b25de352b9cf8e850cff06cd`,
-helyi mentési ág: `backup/before-extension-power-2026-11-02`.
-Az élő dashboard és HA konfiguráció mentése/telepítése nem történt meg:
-a hozzáférési próba `ERR_CERT_COMMON_NAME_INVALID` hibával megállt.
-
-## 0.6.14 – jóváhagyott kazánházi rajz
-
-A TRV-s helyiségek hőigénye és a radiátorkör működése együtt adja a piros
-Fűt állapotot. Külön helyiségi visszajelzés hiányában ugyanaz a
-radiátorkör-jelzés érvényes, mint a TRV nélküli helyiségeknél:
-TECH szivattyú-visszajelzés, ennek hozzárendelése nélkül MINI-D + puffer ≥35 °C.
-A hideg puffer mellett fennálló hőigény zöld, hőigény nélkül szürke.
-
-A hozzáépítés rajzán három szivattyú szerepel: hidraulikusváltó-töltő,
-lenti garázs és szülői háló. A két külön kör a 0.6.13-ban elkészített,
-legalább 10 W-os, kétirányú 5 másodperces késleltetésű sablonérzékelőt követi.
-A töltő jelzése bármelyik kör működésekor forog. Csak akkor áll, ha mindkét
-kör állapotáról ismert, hogy áll; egyébként Nincs adat. A töltő állapota
-itt a megbeszélt összefüggésből származik, nincs külön mérője hozzárendelve.
-A mozgó nyilak a primer előremenő/visszatérő és a működő szekunder körök
-előremenő/visszatérő csövein haladnak. Az álló vagy ismeretlen körök nem animálnak.
-
-Ez kizárólag kijelzés: szivattyúhoz vagy okoskonnektorhoz nem küld parancsot.
-A felhasználó a rajzot és a logikát jóváhagyta. A 0.6.14 a main ágra kerül;
-a telepített Home Assistant frissítése külön lépés. A háromoldalas dashboard YAML változatlan.
+Mentési ág a munka előtt: `backup/before-completion-2026-11-18`, commit `560d672175cf70110c7be75b5b2fb6e50f01a991`. Ez forrásmentés, nem élő HA backup.
