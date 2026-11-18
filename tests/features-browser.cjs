@@ -25,7 +25,7 @@ module.exports=async function(p,assert,fs){
   assert.deepEqual(calls,[['input_text','set_value',{entity_id:'input_text.gree_weekly_'+slug,value:'07:00,heat,22;22:00,off||||||'}],['input_boolean','turn_on',{entity_id:'input_boolean.gree_weekly_'+slug+'_enabled'}]]);
  }
  // The electric button sends the intended script only, never a pump or boiler call.
- await p.evaluate(()=>{h.states[TECH_ELECTRIC.flag]={state:'off'};for(const id of [TECH_ELECTRIC.on,TECH_ELECTRIC.off])h.states[id]={state:'off'};TECH_ELECTRIC.numbers.forEach(id=>h.states[id]={state:'35'});calls.length=0;c.hass=h});
+ await p.evaluate(()=>{h.states[TECH_ELECTRIC.flag]={state:'off'};for(const id of [TECH_ELECTRIC.on,TECH_ELECTRIC.off,'script.futestuning_electric_tech_transition'])h.states[id]={state:'off'};TECH_ELECTRIC.numbers.forEach(id=>h.states[id]={state:'35'});calls.length=0;c.hass=h});
  await p.locator('[data-tech-electric]').click();assert.deepEqual(await p.evaluate(()=>calls.splice(0)),[['script','futestuning_electric_tech_on',{}]]);
  await p.evaluate(()=>{h.states[TECH_ELECTRIC.flag].state='on';c.hass=h});await p.locator('[data-tech-electric]').click();assert.deepEqual(await p.evaluate(()=>calls.splice(0)),[['script','futestuning_electric_tech_off',{}]]);
  // Read-only history: a real REST response shape, weather attributes, data gaps.
