@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: dashboard-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-24.04
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - name: Check JavaScript and HACS package
@@ -32,9 +36,17 @@ jobs:
           python3 tests/control-packages.py
           node tests/diagnostics-test.cjs
       - name: Install browser test tools
+        timeout-minutes: 3
+        run: npm install --no-save --no-audit --no-fund --fetch-timeout=60000 --fetch-retries=1 playwright@1.56.1
+      - name: Select an installed browser or install Chromium
+        timeout-minutes: 4
         run: |
-          npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          browser_path="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$browser_path" ]; then
+            echo "FT_CHROMIUM_PATH=$browser_path" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium --only-shell
+          fi
       - name: Check all three views, controls and service restrictions
         run: node tests/visual-browser.cjs
       - uses: actions/upload-artifact@v4
