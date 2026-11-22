@@ -61,7 +61,7 @@ const FT_DIAGNOSTICS = {
  }
 };
 
-;/* Fűtéstuning custom Home Assistant Lovelace card, v0.7.2 */
+;/* Fűtéstuning custom Home Assistant Lovelace card, v0.7.3 */
 const DATA={
  buffer:"sensor.elite_thr316d_sonoff_1002bdc9e4_temperature",
  alert:"binary_sensor.hideg_puffer_futesi_igeny_van",
@@ -121,7 +121,7 @@ const HMV_SENSOR="sensor.wifi_rs_hmv_szenzor_homerseklet";
 const BOILER={switch:"switch.bojler_sonoff_1002a15517_1",power:"sensor.bojler_sonoff_1002a15517_power",energy:"sensor.bojler_sonoff_1002a15517_energy_day"};
 const SHARED_RADIATOR_ROOMS=new Set(["Emeleti fürdő","Hanna háló","Nappali / konyha / étkező"]);
 const TECH_DEMAND=["binary_sensor.wifi_rs_hagyomanyos_szobaterm_1","binary_sensor.wifi_rs_hagyomanyos_szobaterm_2","binary_sensor.wifi_rs_hagyomanyos_szobatermosztat_3"];
-const VERSION='0.7.2';
+const VERSION='0.7.3';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const paths={info:'M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20M12 10v7M12 7h.01',fire:'M12 2C13 7 20 8 20 15a8 8 0 0 1-16 0c0-4 3-6 5-9 0 4 2 5 3 6 2-3 1-7 0-10Z',home:'m3 11 9-8 9 8v10h-6v-7H9v7H3Z',floor:'M4 21V15H10V9H16V3H22',water:'M12 2C10 6 4 12 4 16a8 8 0 0 0 16 0c0-4-6-10-8-14Z',rad:'M5 4v16M10 4v16M15 4v16M20 4v16M2 7h21M2 17h21',bed:'M3 17V8h18v13M3 17h18M3 21v-4M6 8V4h12v4M7 12h10',bath:'M3 12h18v3a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6ZM6 12V5a3 3 0 0 1 6 0',car:'m4 10 2-6h12l2 6M3 10h18v8H3ZM6 18v3M18 18v3M6 14h1M17 14h1',screen:'M3 3h18v14H3ZM8 21h8M12 17v4',pipe:'M3 3h6v6h6v6h6v6M9 6h12M18 3v6',power:'M12 2v10M6 5a9 9 0 1 0 12 0',leaf:'M20 3C6 1 1 8 5 16c4 8 15 4 15-13ZM5 18 16 7',moon:'M20 15A9 9 0 0 1 9 3a9 9 0 1 0 11 12Z',calendar:'M3 5h18v16H3ZM7 2v6M17 2v6M3 11h18',snow:'M12 2v20M3 7l18 10M3 17 21 7M8 4l4 3 4-3M8 20l4-3 4 3',tank:'M6 5a6 3 0 0 0 12 0 6 3 0 0 0-12 0v14a6 3 0 0 0 12 0V5M6 5a6 3 0 0 0 12 0',chip:'M6 6h12v12H6ZM9 1v5M15 1v5M9 18v5M15 18v5M1 9h5M1 15h5M18 9h5M18 15h5',chart:'M4 21V12M10 21V6M16 21V2M22 21V9',thermo:'M9 14V5a3 3 0 0 1 6 0v9a5 5 0 1 1-6 0ZM12 8v10',check:'m5 12 4 4L20 5'};
 const ico=(n,cls='')=>`<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n]||paths.home}"/></svg>`;
@@ -338,14 +338,12 @@ class FutestuningCard extends HTMLElement{
  plant(){return `<div class="plant-top"><div class="panel"><h2>${ico('pipe')} Hőforrás oldal</h2><div class="metricrow"><span>ATTACK · PROFI PID</span><b>Önálló vezérlés</b></div><div class="metricrow"><span>Puffer · TH Elite</span><b class="plantreading">${this.fmt(DATA.buffer)}</b></div><div class="note">Egyetlen mért pont. Nincs háromzónás mérés.</div></div><div class="panel"><h2>${ico('chip')} TECH vezérlés – fő rendszer</h2>${DATA.circuits.map((c,i)=>`<div class="inforow"><span>0${i+1} ${c[0]}</span><b>${this.fmt(c[1])} · cél ${this.fmt(c[2])} · <span class="tech-enabled ${this.circuitEnabled(i)===true?'enabled':this.circuitEnabled(i)===false?'disabled':'unknown'}">${this.circuitEnableLabel(i)}</span></b></div>`).join('')}</div><div class="panel"><h2>${ico('water')} HMV</h2><div class="metricrow"><span>Vízhőmérséklet</span><b>${this.fmt(HMV_SENSOR)}</b></div><div class="note">TECH HMV érzékelő</div><div class="inforow"><span>HMV töltőszivattyú</span><b>${this.status(this.hmvPumpFeedback().state,['Üzemel','Áll','Nincs adat'])}</b></div><div class="inforow"><span>Elektromos fűtés</span><b>${this.status(this.boilerHeating())}</b></div><div class="label">${this.powerLabel(BOILER.power)}</div></div></div><div class="diagram">${this.schematic()}</div>`}
  extensionPumps(){const garage=this.extensionHeating(DATA.rooms.find(r=>r[1]==='Lenti garázs')).state,bedroom=this.extensionHeating(DATA.rooms.find(r=>r[1]==='Szülői háló')).state;return {garage,bedroom,charge:garage===true||bedroom===true?true:garage===false&&bedroom===false?false:null}}
  hmvPumpFeedback(){
-  const explicit=this.cfg.hmv_pump_feedback_entity;
-  if(explicit){const state=this.s(explicit)?.state;return {state:state==='on'?true:state==='off'?false:null,source:explicit}}
-  // TECH can expose the HMV relay under different entity identifiers.
-  // Resolve only unambiguous, binary TECH entities; never infer from temperatures.
-  const candidates=Object.keys(this._hass?.states||{}).filter(id=>/^(?:binary_sensor|switch)\.wifi_rs_/.test(id)&&/(?:hmv|cwu)/.test(id)&&/(?:szivattyu|pumpa|pump|relay|rele)/.test(id));
-  if(candidates.length!==1)return {state:null,source:null};
-  const state=this.s(candidates[0])?.state;
-  return {state:state==='on'?true:state==='off'?false:null,source:candidates[0]};
+  const explicit=this.cfg.hmv_pump_feedback_entity||'sensor.wifi_rs_hmv_szivattyu';
+  const value=this.s(explicit)?.state;
+  // TECH WiFi-RS exposes its HMV pump state as a sensor, typically 0/1.
+  // Unknown formats stay unknown rather than generating a false running animation.
+  const parsed=value==='on'||value==='1'||value==='1.0'||value===1?true:value==='off'||value==='0'||value==='0.0'||value===0?false:null;
+  return {state:parsed,source:explicit};
  }
  hmvFlowArrows(){
   if(this.hmvPumpFeedback().state!==true)return '';
